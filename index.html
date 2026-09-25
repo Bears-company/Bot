@@ -1,0 +1,1190 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BEARS COMPANY</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root {
+    --bg:#1A1611; --surface:#231D15; --surface2:#2E2618; --line:#3D3324;
+    --honey:#D9A24E; --honey-soft:#EFC77E; --forest:#8CA383; --ink:#F0E8D8; --ink-dim:#A79877; --danger:#BF7250; --robux:#5FB58A;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  :root:not([data-theme="light"]) { color-scheme: dark; }
+  :root[data-theme="light"] {
+    --bg:#FBF7EF; --surface:#FFFFFF; --surface2:#F4ECDB; --line:#E6D8BE;
+    --honey:#B8802E; --honey-soft:#D9A24E; --forest:#6F8965; --ink:#2B2317; --ink-dim:#8C7D63; --danger:#A85D3F; --robux:#3D8C64;
+  }
+  html { scroll-padding-top: env(safe-area-inset-top,0px); height:100%; }
+  * { box-sizing: border-box; }
+  body { margin:0; height:100%; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing:antialiased; }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100%; display:flex; flex-direction:column; }
+  header.top { padding: 18px 20px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+  .brand { display:flex; align-items:center; gap:10px; }
+  .brand .mark { width:34px; height:34px; border-radius:10px; background: linear-gradient(160deg, var(--honey-soft), var(--honey)); display:flex; align-items:center; justify-content:center; font-size:18px; }
+  .brand-text { font-family:"Fraunces", serif; font-weight:600; font-size:1.05rem; letter-spacing:0.2px; }
+  .brand-text small { display:block; font-family:-apple-system,sans-serif; font-weight:400; font-size:0.68rem; color:var(--ink-dim); }
+  .admin-pill { font-size:0.68rem; padding:4px 9px; border-radius:20px; background:var(--surface2); color:var(--honey-soft); border:1px solid var(--line); }
+  .theme-toggle { width:34px; height:34px; border-radius:10px; border:1px solid var(--line); background:var(--surface);
+    color:var(--ink); font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+  .theme-toggle:active { transform: scale(0.94); }
+
+  .shop-switcher { display:flex; gap:8px; overflow-x:auto; padding:14px 20px 4px; -ms-overflow-style:none; scrollbar-width:none; }
+  .shop-switcher::-webkit-scrollbar { display:none; }
+  .shop-chip { flex-shrink:0; border:1px solid var(--line); background:var(--surface); color:var(--ink-dim);
+    padding:8px 16px; border-radius:20px; font-size:0.82rem; font-weight:600; cursor:pointer; white-space:nowrap; transition:background 0.15s ease, color 0.15s ease; }
+  .shop-chip.active { background: linear-gradient(155deg, var(--honey-soft), var(--honey)); border-color:var(--honey); color:#241C10; box-shadow: 0 4px 12px -5px rgba(217,162,78,0.6); }
+
+  .balance-card { margin:14px 20px 6px; padding:24px 22px 22px; border-radius:22px;
+    background: linear-gradient(155deg, var(--surface2), var(--surface)); border:1px solid var(--line); position:relative; overflow:hidden;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.14), 0 14px 30px -20px rgba(0,0,0,0.5); }
+  .balance-card::after { content:"🐾"; position:absolute; right:-8px; bottom:-20px; font-size:5.8rem; opacity:0.07; transform:rotate(-12deg); color:var(--honey); }
+  .balance-label { font-size:0.78rem; color:var(--ink-dim); }
+  .balance-value { font-family:"Fraunces", serif; font-size:2.5rem; font-weight:600; margin-top:4px; display:flex; align-items:baseline; gap:8px; }
+  .balance-value .robux-glyph { font-size:1.5rem; color:var(--robux); font-family:-apple-system,sans-serif; }
+  .balance-value .unit { font-size:1.1rem; color:var(--honey-soft); font-weight:500; font-family:-apple-system,sans-serif; }
+
+  main { flex:1; padding: 4px 20px 92px; }
+  .section-title { font-family:"Fraunces", serif; font-size:1.25rem; font-weight:600; margin: 22px 0 4px; }
+  .section-sub { color:var(--ink-dim); font-size:0.85rem; margin-bottom:14px; }
+  .screen { display:none; } .screen.active { display:block; }
+
+  .item-card { display:flex; align-items:center; gap:14px; padding:14px; margin-bottom:10px;
+    background:var(--surface); border:1px solid var(--line); border-radius:18px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 10px 22px -18px rgba(0,0,0,0.4); }
+  .item-icon { width:46px; height:46px; border-radius:13px; flex-shrink:0; background:var(--surface2);
+    display:flex; align-items:center; justify-content:center; font-size:1.35rem; overflow:hidden; }
+  .item-icon img { width:100%; height:100%; object-fit:cover; }
+  .item-body { flex:1; min-width:0; } .item-name { font-weight:600; font-size:0.95rem; }
+  .item-meta { font-size:0.78rem; color:var(--robux); font-weight:600; margin-top:3px; }
+  .item-action { border:none; border-radius:100px; padding:10px 18px; font-size:0.85rem; font-weight:700; cursor:pointer;
+    background: linear-gradient(155deg, var(--honey-soft), var(--honey)); color:#241C10; white-space:nowrap;
+    box-shadow: 0 4px 10px -4px rgba(217,162,78,0.55); letter-spacing:0.1px; transition: transform 0.12s ease, box-shadow 0.12s ease; }
+  .item-action:active { transform: scale(0.95); box-shadow: 0 2px 6px -3px rgba(217,162,78,0.5); }
+  .item-action.secondary { background: rgba(140,163,131,0.16); border:1px solid rgba(140,163,131,0.4); color:var(--forest); box-shadow:none; }
+  .item-action.danger { background: rgba(191,114,80,0.14); border:1px solid rgba(191,114,80,0.4); color:var(--danger); box-shadow:none; }
+  .item-action:disabled { opacity:0.4; cursor:not-allowed; box-shadow:none; }
+
+  .empty { text-align:center; padding:40px 12px; color:var(--ink-dim); }
+  .empty .glyph { font-size:2.2rem; margin-bottom:8px; display:block; }
+
+  .withdraw-box, .admin-add-box { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:18px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 10px 22px -18px rgba(0,0,0,0.4); }
+  .withdraw-box label, .admin-add-box label { font-size:0.8rem; color:var(--ink-dim); display:block; margin-bottom:6px; }
+  .field { margin-bottom:14px; }
+  .field input { width:100%; background:var(--surface2); border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; font-size:1rem; color:var(--ink); font-family:inherit; }
+  .field input:focus { outline:2px solid var(--honey); outline-offset:1px; }
+  .hint { font-size:0.76rem; color:var(--ink-dim); margin-top:10px; line-height:1.4; }
+
+  .badge { font-size:0.72rem; padding:3px 9px; border-radius:20px; font-weight:600; white-space:nowrap; }
+  .badge.pending { background:rgba(217,162,78,0.18); color:var(--honey-soft); }
+  .badge.done { background:rgba(140,163,131,0.2); color:var(--forest); }
+  .badge.rejected { background:rgba(191,114,80,0.18); color:var(--danger); }
+
+  .history-title { font-size:0.85rem; color:var(--ink-dim); margin:22px 0 8px; }
+  .history-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--line); font-size:0.87rem; }
+  .history-row .amt { color:var(--robux); font-weight:700; }
+
+  .admin-block { margin-bottom:28px; }
+  .admin-block-title { font-size:0.95rem; font-weight:700; margin-bottom:2px; }
+  .admin-block-sub { font-size:0.78rem; color:var(--ink-dim); margin-bottom:10px; }
+  .admin-item { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:14px; margin-bottom:10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 10px 22px -18px rgba(0,0,0,0.4); }
+  .admin-item .row1 { display:flex; gap:8px; margin-bottom:8px; }
+  .admin-item input { background:var(--surface2); border:1px solid var(--line); border-radius:10px;
+    padding:9px 10px; color:var(--ink); font-size:0.88rem; font-family:inherit; }
+  .admin-item .icon-input { width:52px; text-align:center; font-size:1.1rem; }
+  .admin-item .name-input { flex:1; }
+  .admin-item .row2 { display:flex; gap:8px; align-items:center; }
+  .admin-item .price-input { width:96px; }
+  .admin-item .price-label { font-size:0.72rem; color:var(--ink-dim); }
+  .admin-item .actions { display:flex; gap:8px; margin-left:auto; }
+  .admin-add-box { margin-top:12px; }
+  select.shop-select, select.item-shop-select { width:100%; background:var(--surface2); border:1px solid var(--line); border-radius:10px;
+    padding:9px 10px; color:var(--ink); font-size:0.88rem; font-family:inherit; appearance:none;
+    background-image: linear-gradient(45deg, transparent 50%, var(--ink-dim) 50%), linear-gradient(135deg, var(--ink-dim) 50%, transparent 50%);
+    background-position: calc(100% - 16px) center, calc(100% - 11px) center; background-size: 5px 5px, 5px 5px; background-repeat:no-repeat; }
+  .shop-group { margin-bottom:18px; }
+  .shop-group-header { display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-left:2px; }
+  .shop-group-header .bar { width:4px; height:16px; border-radius:3px; background:var(--honey); }
+  .shop-group-header .name { font-weight:700; font-size:0.9rem; }
+  .shop-group-header .count { font-size:0.74rem; color:var(--ink-dim); }
+  .admin-item .row0 { margin-bottom:8px; }
+  .request-row { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:14px; margin-bottom:10px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.12), 0 10px 22px -18px rgba(0,0,0,0.4); }
+  .request-row .top-line { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+  .request-row .nick { font-size:0.8rem; color:var(--ink-dim); margin-bottom:8px; }
+  .request-row .actions { display:flex; gap:8px; }
+  .shop-admin-row { display:flex; gap:8px; align-items:center; background:var(--surface); border:1px solid var(--line);
+    border-radius:16px; padding:10px; margin-bottom:8px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1), 0 8px 18px -16px rgba(0,0,0,0.4); }
+  .shop-admin-row input { flex:1; background:var(--surface2); border:1px solid var(--line); border-radius:10px; padding:9px 10px; color:var(--ink); font-size:0.9rem; }
+
+  nav.tabbar { position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:center;
+    background: rgba(26,22,17,0.92); backdrop-filter: blur(10px); border-top:1px solid var(--line);
+    padding-bottom: env(safe-area-inset-bottom,0px); }
+  :root[data-theme="light"] nav.tabbar { background: rgba(251,247,239,0.92); }
+  .tabbar-inner { max-width:480px; width:100%; display:flex; }
+  .tab-btn { flex:1; background:none; border:none; padding:12px 4px 10px; display:flex; flex-direction:column;
+    align-items:center; gap:4px; color:var(--ink-dim); font-size:0.68rem; cursor:pointer; position:relative; }
+  .tab-btn .icon { font-size:1.2rem; } .tab-btn.active { color:var(--honey-soft); }
+  .tab-btn.active::before { content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
+    width:16px; height:3px; border-radius:3px; background:var(--honey); }
+
+  .toast { position:fixed; left:50%; bottom:96px; transform:translateX(-50%) translateY(20px);
+    background:var(--surface2); border:1px solid var(--line); color:var(--ink); padding:10px 18px; border-radius:12px;
+    font-size:0.85rem; opacity:0; transition: all 0.25s ease; pointer-events:none; z-index:50; max-width: 90%; text-align:center; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  .sync-note { font-size:0.72rem; color:var(--ink-dim); text-align:center; padding:8px 20px 0; }
+  .search-input { width:100%; background:var(--surface); border:1px solid var(--line); border-radius:14px;
+    padding:11px 14px; font-size:0.88rem; color:var(--ink); font-family:inherit; margin-bottom:12px; }
+  .search-input:focus { outline:2px solid var(--honey); outline-offset:1px; }
+  .search-input::placeholder { color:var(--ink-dim); }
+  .stats-row { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:22px; }
+  .stat-card { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:12px 10px; text-align:center; }
+  .stat-card .num { font-family:"Fraunces", serif; font-size:1.35rem; font-weight:600; color:var(--honey-soft); }
+  .stat-card .lbl { font-size:0.68rem; color:var(--ink-dim); margin-top:2px; }
+
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:flex-end;
+    justify-content:center; z-index:100; opacity:0; pointer-events:none; transition:opacity 0.15s ease; }
+  .modal-overlay.show { opacity:1; pointer-events:auto; }
+  .modal-box { width:100%; max-width:480px; background:var(--surface); border:1px solid var(--line);
+    border-radius:22px 22px 0 0; padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px)); transform:translateY(12px); transition:transform 0.15s ease; }
+  .modal-overlay.show .modal-box { transform:translateY(0); }
+  .modal-msg { font-size:0.95rem; margin-bottom:18px; line-height:1.4; }
+  .modal-actions { display:flex; gap:10px; }
+  .modal-actions .item-action { flex:1; text-align:center; }
+
+  .new-badge { font-size:0.62rem; font-weight:800; letter-spacing:0.4px; padding:2px 7px; border-radius:8px;
+    background:var(--robux); color:#0F1A14; margin-left:6px; vertical-align:middle; }
+  .stock-note { font-size:0.72rem; color:var(--ink-dim); margin-top:1px; }
+  .stock-note.low { color:var(--danger); font-weight:600; }
+
+  .icon-picker-row { display:flex; gap:8px; margin-bottom:8px; align-items:center; }
+  .icon-preview { width:38px; height:38px; border-radius:10px; background:var(--surface2); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center; font-size:1.1rem; overflow:hidden; flex-shrink:0; }
+  .icon-preview img { width:100%; height:100%; object-fit:cover; }
+  .icon-file-label { font-size:0.76rem; color:var(--honey-soft); border:1px solid var(--line); background:var(--surface2);
+    padding:8px 10px; border-radius:10px; cursor:pointer; white-space:nowrap; }
+  .icon-clear-btn { font-size:0.72rem; color:var(--danger); background:none; border:none; cursor:pointer; padding:4px; }
+
+  .csv-btn-row { display:flex; gap:8px; margin-top:10px; }
+  .csv-btn { flex:1; font-size:0.78rem; padding:9px 10px; }
+  .grant-row { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:12px; margin-bottom:8px; }
+  .grant-row .nick-line { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.88rem; font-weight:600; }
+  .grant-row .nick-line .bal { font-weight:400; color:var(--robux); font-size:0.8rem; }
+  .grant-row .grant-controls { display:flex; gap:8px; }
+  .grant-row .grant-controls input { flex:1; background:var(--surface2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; color:var(--ink); }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark">🐻</div>
+      <div class="brand-text">BEARS COMPANY<small>Ринок для своїх</small></div>
+    </div>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span class="admin-pill" id="adminPill" style="display:none">Адмін</span>
+      <button class="theme-toggle" id="themeToggle" aria-label="Змінити тему">🌙</button>
+    </div>
+  </header>
+
+  <div class="shop-switcher" id="shopSwitcher"></div>
+
+  <div class="balance-card">
+    <div class="balance-label">Ваш баланс</div>
+    <div class="balance-value"><span class="robux-glyph">◆</span><span id="balanceValue">0</span><span class="unit">Robux</span></div>
+  </div>
+  <div class="sync-note" id="syncNote"></div>
+
+  <main>
+    <section id="screen-shop" class="screen active">
+      <div class="section-title" id="shopTitle">Магазин</div>
+      <div class="section-sub">Купівля списує Robux і додає предмет у ваш інвентар</div>
+      <input type="text" class="search-input" id="shopSearch" placeholder="🔍 Пошук товару...">
+      <select class="shop-select" id="shopSort" style="margin-bottom:12px;">
+        <option value="default">За замовчуванням</option>
+        <option value="price_asc">Ціна: спочатку дешеві</option>
+        <option value="price_desc">Ціна: спочатку дорогі</option>
+        <option value="name">За назвою (А-Я)</option>
+      </select>
+      <div id="shopList"></div>
+    </section>
+
+    <section id="screen-sell" class="screen">
+      <div class="section-title">Продаж своїх предметів</div>
+      <div class="section-sub">Заявка йде адміну на підтвердження, після цього Robux нарахуються на баланс</div>
+      <input type="text" class="search-input" id="sellSearch" placeholder="🔍 Пошук товару...">
+      <select class="shop-select" id="sellSort" style="margin-bottom:12px;">
+        <option value="default">За замовчуванням</option>
+        <option value="price_asc">Ціна: спочатку дешеві</option>
+        <option value="price_desc">Ціна: спочатку дорогі</option>
+        <option value="name">За назвою (А-Я)</option>
+      </select>
+      <div id="sellList"></div>
+      <div class="history-title">Моя історія продажів</div>
+      <div id="sellHistory"></div>
+    </section>
+
+    <section id="screen-withdraw" class="screen">
+      <div class="section-title">Вивід</div>
+      <div class="section-sub">Подайте заявку адміну на видачу предмета в Roblox</div>
+      <div class="withdraw-box">
+        <div class="field" style="margin-bottom:0;">
+          <label for="robloxNick">Нік у Roblox</label>
+          <input type="text" id="robloxNick" placeholder="наприклад, CoolBear123" maxlength="40">
+        </div>
+        <div class="hint">Вкажіть свій нік перед подачею заявки — він збережеться для наступних разів.</div>
+      </div>
+      <div class="history-title">Мій інвентар</div>
+      <div id="inventoryList"></div>
+      <div class="history-title">Мої заявки на вивід</div>
+      <div id="myRequests"></div>
+    </section>
+
+    <section id="screen-admin" class="screen">
+      <div class="section-title">Адмін-панель</div>
+      <div class="section-sub">Каталоги товарів редагуються окремо для кожного магазину зверху</div>
+
+      <div class="stats-row" id="statsRow"></div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">🏪 Магазини</div>
+        <div class="admin-block-sub">Кожен магазин має власні товари на купівлю й продаж</div>
+        <div id="adminShopsList"></div>
+        <div class="admin-add-box">
+          <label>Новий магазин</label>
+          <div class="row1">
+            <input class="name-input" id="newShopName" placeholder="Назва магазину">
+            <button class="item-action" id="addShopBtn">Додати</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">📥 Заявки на вивід</div>
+        <div class="admin-block-sub">Видайте предмет у Roblox і позначте заявку виконаною</div>
+        <input type="text" class="search-input" id="requestsSearch" placeholder="🔍 Пошук за ніком Roblox..." style="margin-bottom:10px;">
+        <div id="withdrawRequestsList"></div>
+        <div class="csv-btn-row">
+          <button class="item-action secondary csv-btn" id="exportRequestsBtn">⬇️ Експорт заявок CSV</button>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">🎁 Видати Robux гравцю</div>
+        <div class="admin-block-sub">Пошук за ніком у Roblox і нарахування вручну</div>
+        <input type="text" class="search-input" id="grantSearch" placeholder="🔍 Пошук гравця за ніком..." style="margin-bottom:10px;">
+        <div id="grantList"></div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">🧾 Заявки на продаж</div>
+        <div class="admin-block-sub">Гроші нараховуються гравцю лише після вашого підтвердження</div>
+        <div id="sellLogList"></div>
+        <div class="csv-btn-row">
+          <button class="item-action secondary csv-btn" id="exportSalesBtn">⬇️ Експорт продажів CSV</button>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title" id="adminBuyTitle">🛍️ Що можна купити</div>
+        <div class="admin-block-sub">Товари згруповано по магазинах. Ціна списується, предмет потрапляє в інвентар</div>
+        <div id="adminBuyList"></div>
+        <div class="admin-add-box">
+          <label>Новий товар на купівлю</label>
+          <div class="icon-picker-row">
+            <div class="icon-preview" id="newBuyIconPreview">🎁</div>
+            <label class="icon-file-label">📷 Фото<input type="file" accept="image/*" id="newBuyIconFile" hidden></label>
+            <button type="button" class="icon-clear-btn" id="newBuyIconClear" style="display:none;">✕ прибрати фото</button>
+          </div>
+          <input type="hidden" id="newBuyIconData" value="">
+          <div class="row1">
+            <input class="icon-input" id="newBuyIcon" placeholder="🎁" maxlength="4">
+            <input class="name-input" id="newBuyName" placeholder="Назва товару">
+          </div>
+          <div class="row2" style="margin-top:8px;">
+            <div style="flex:1;"><div class="price-label">Магазин</div><select class="shop-select" id="newBuyShop"></select></div>
+            <div><div class="price-label">Ціна</div><input class="price-input" id="newBuyPrice" type="number" placeholder="0"></div>
+          </div>
+          <div class="row2" style="margin-top:8px;">
+            <div style="flex:1;"><div class="price-label">Кількість (порожньо = необмежено)</div><input class="price-input" id="newBuyStock" type="number" placeholder="∞" style="width:100%;"></div>
+          </div>
+          <div class="row2" style="margin-top:8px;">
+            <div class="actions" style="margin-left:0; width:100%;"><button class="item-action" id="addBuyBtn" style="width:100%;">Додати товар</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title" id="adminSellTitle">🐾 Що можна продати</div>
+        <div class="admin-block-sub">Товари згруповано по магазинах. Ціна нараховується одразу</div>
+        <div id="adminSellList"></div>
+        <div class="admin-add-box">
+          <label>Новий товар на продаж</label>
+          <div class="icon-picker-row">
+            <div class="icon-preview" id="newSellIconPreview">🎁</div>
+            <label class="icon-file-label">📷 Фото<input type="file" accept="image/*" id="newSellIconFile" hidden></label>
+            <button type="button" class="icon-clear-btn" id="newSellIconClear" style="display:none;">✕ прибрати фото</button>
+          </div>
+          <input type="hidden" id="newSellIconData" value="">
+          <div class="row1">
+            <input class="icon-input" id="newSellIcon" placeholder="🎁" maxlength="4">
+            <input class="name-input" id="newSellName" placeholder="Назва товару">
+          </div>
+          <div class="row2" style="margin-top:8px;">
+            <div style="flex:1;"><div class="price-label">Магазин</div><select class="shop-select" id="newSellShop"></select></div>
+            <div><div class="price-label">Ціна</div><input class="price-input" id="newSellPrice" type="number" placeholder="0"></div>
+          </div>
+          <div class="row2" style="margin-top:8px;">
+            <div class="actions" style="margin-left:0; width:100%;"><button class="item-action" id="addSellBtn" style="width:100%;">Додати товар</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <nav class="tabbar">
+    <div class="tabbar-inner">
+      <button class="tab-btn active" data-tab="shop"><span class="icon">🛍️</span>Магазин</button>
+      <button class="tab-btn" data-tab="sell"><span class="icon">🐾</span>Продаж</button>
+      <button class="tab-btn" data-tab="withdraw"><span class="icon">💸</span>Вивід</button>
+      <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display:none"><span class="icon">⚙️</span>Адмін</button>
+    </div>
+  </nav>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-box">
+      <div class="modal-msg" id="modalMsg"></div>
+      <div class="modal-actions">
+        <button class="item-action secondary" id="modalCancel">Скасувати</button>
+        <button class="item-action" id="modalConfirm">Підтвердити</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyD_gYzlPzo7_uAbA9f_2zU97ptKsiedb2o",
+    authDomain: "bears-bot.firebaseapp.com",
+    projectId: "bears-bot",
+    storageBucket: "bears-bot.firebasestorage.app",
+    messagingSenderId: "268214967469",
+    appId: "1:268214967469:web:382cc71889fb6a73adba24"
+  };
+  // Telegram user IDs (numbers) who should have admin access. Add your own Telegram ID here.
+  // Get your ID by messaging @userinfobot on Telegram.
+  var ADMIN_TELEGRAM_IDS = [ 2067230442 ];
+</script>
+<script>
+(function(){
+  var LOCAL_KEY = "bears_company_local_v5";
+  var db = null, uid = null, isAdmin = false;
+  var shops = [];              // {id, name}
+  var currentShopId = null;
+  var allBuyItems = [];        // {id, name, icon, price, shopId}
+  var allSellItems = [];       // {id, name, icon, price, shopId}
+  var wallet = { balance: 0, robloxNick: "" };
+  var myInventory = [];        // {id, name, icon, price, status, robloxNick}
+  var pendingRequests = [];    // admin view
+  var allWithdrawHistory = []; // admin: full withdraw history for CSV export
+  var mySellLog = [];
+  var adminSellLog = [];
+  var localMode = false;
+
+  function fmt(n){ return Math.round(n||0).toLocaleString("uk-UA"); }
+  var pendingConfirmCb = null;
+  function showConfirm(message, onYes){
+    document.getElementById("modalMsg").textContent = message;
+    pendingConfirmCb = onYes;
+    document.getElementById("modalOverlay").classList.add("show");
+  }
+  function hideConfirm(){ document.getElementById("modalOverlay").classList.remove("show"); pendingConfirmCb = null; }
+  document.getElementById("modalCancel").addEventListener("click", hideConfirm);
+  document.getElementById("modalOverlay").addEventListener("click", function(e){ if (e.target === this) hideConfirm(); });
+  document.getElementById("modalConfirm").addEventListener("click", function(){
+    var cb = pendingConfirmCb; hideConfirm(); if (cb) cb();
+  });
+  function showToast(msg){
+    var t = document.getElementById("toast");
+    t.textContent = msg; t.classList.add("show");
+    clearTimeout(showToast._h);
+    showToast._h = setTimeout(function(){ t.classList.remove("show"); }, 1900);
+  }
+  function buyItemsForCurrentShop(){ return allBuyItems.filter(function(i){ return i.shopId === currentShopId; }); }
+  function sellItemsForCurrentShop(){ return allSellItems.filter(function(i){ return i.shopId === currentShopId; }); }
+  var shopSearchQuery = "", sellSearchQuery = "";
+  function applySearch(items, query){
+    if (!query) return items;
+    var q = query.toLowerCase();
+    return items.filter(function(i){ return i.name.toLowerCase().indexOf(q) !== -1; });
+  }
+
+  // ---------- local fallback ----------
+  function loadLocal(){
+    try { var raw = localStorage.getItem(LOCAL_KEY); if (raw){ var p = JSON.parse(raw); if (p) return p; } } catch(e) {}
+    return { balance: 0, robloxNick: "", inventory: [], sellLog: [] };
+  }
+  var localState = null;
+  function saveLocal(){
+    try {
+      localState.balance = wallet.balance; localState.robloxNick = wallet.robloxNick;
+      localState.inventory = myInventory; localState.sellLog = mySellLog;
+      localStorage.setItem(LOCAL_KEY, JSON.stringify(localState));
+    } catch(e){}
+  }
+
+  var defaultShop = { id:"default", name:"Головний магазин" };
+  var defaultBuyCatalog = [
+    { id:"honey_jar", name:"Баночка меду", icon:"🍯", price:40, shopId:"default", createdAt:0, stock:null },
+    { id:"warm_coat", name:"Тепла шуба", icon:"🧥", price:120, shopId:"default", createdAt:0, stock:null },
+    { id:"golden_claw", name:"Золотий пазур", icon:"🏅", price:300, shopId:"default", createdAt:0, stock:null }
+  ];
+  var defaultSellCatalog = [
+    { id:"old_sword", name:"Старий меч", icon:"🗡️", price:35, shopId:"default", createdAt:0 },
+    { id:"treasure_map", name:"Карта скарбів", icon:"🗺️", price:60, shopId:"default", createdAt:0 },
+    { id:"gem", name:"Дорогоцінний камінь", icon:"💎", price:150, shopId:"default", createdAt:0 }
+  ];
+
+  // ---------- rendering ----------
+  function renderBalance(){ document.getElementById("balanceValue").textContent = fmt(wallet.balance); }
+
+  function renderShopSwitcher(){
+    var box = document.getElementById("shopSwitcher");
+    box.innerHTML = "";
+    if (shops.length === 0){ box.innerHTML = '<span style="color:var(--ink-dim);font-size:0.8rem;padding:8px 4px;">Магазинів ще немає</span>'; return; }
+    shops.forEach(function(shop){
+      var chip = document.createElement("button");
+      chip.className = "shop-chip" + (shop.id === currentShopId ? " active" : "");
+      chip.textContent = shop.name;
+      chip.addEventListener("click", function(){ currentShopId = shop.id; renderAll(); });
+      box.appendChild(chip);
+    });
+  }
+
+  var shopSortMode = "default", sellSortMode = "default";
+  function sortItems(items, mode){
+    var arr = items.slice();
+    if (mode === "price_asc") arr.sort(function(a,b){ return a.price - b.price; });
+    else if (mode === "price_desc") arr.sort(function(a,b){ return b.price - a.price; });
+    else if (mode === "name") arr.sort(function(a,b){ return a.name.localeCompare(b.name, "uk"); });
+    return arr;
+  }
+  function iconHtml(icon){
+    if (icon && icon.indexOf("data:image") === 0) return '<img src="' + icon + '" alt="">';
+    return icon || "🎁";
+  }
+  function isNew(item){ return (Date.now() - (item.createdAt || 0)) < (3*24*3600*1000) && item.createdAt; }
+
+  function renderCatalogList(container, items, actionLabel, actionClass, onAction, disableCheck, isBuyList){
+    container.innerHTML = "";
+    if (items.length === 0){ container.innerHTML = '<div class="empty"><span class="glyph">📦</span>У цьому магазині поки немає товарів.</div>'; return; }
+    items.forEach(function(item){
+      var outOfStock = isBuyList && typeof item.stock === "number" && item.stock <= 0;
+      var disabled = (disableCheck ? disableCheck(item) : false) || outOfStock;
+      var row = document.createElement("div");
+      row.className = "item-card";
+      var stockHtml = "";
+      if (isBuyList && typeof item.stock === "number"){
+        stockHtml = outOfStock ? '<div class="stock-note low">Немає в наявності</div>' :
+          (item.stock <= 10 ? '<div class="stock-note low">Залишилось: ' + item.stock + '</div>' : '<div class="stock-note">В наявності: ' + item.stock + '</div>');
+      }
+      row.innerHTML =
+        '<div class="item-icon">' + iconHtml(item.icon) + '</div>' +
+        '<div class="item-body"><div class="item-name"></div>' +
+        '<div class="item-meta">◆ ' + fmt(item.price) + ' Robux</div>' + stockHtml + '</div>' +
+        '<button class="item-action ' + actionClass + '" ' + (disabled ? "disabled" : "") + '>' + (outOfStock ? "Немає" : actionLabel) + '</button>';
+      var nameEl = row.querySelector(".item-name");
+      nameEl.textContent = item.name;
+      if (isNew(item)){ var b = document.createElement("span"); b.className = "new-badge"; b.textContent = "NEW"; nameEl.appendChild(b); }
+      row.querySelector("button").addEventListener("click", function(){ onAction(item); });
+      container.appendChild(row);
+    });
+  }
+
+  function renderShop(){
+    var shop = shops.find(function(s){ return s.id === currentShopId; });
+    document.getElementById("shopTitle").textContent = shop ? "Магазин · " + shop.name : "Магазин";
+    var items = sortItems(applySearch(buyItemsForCurrentShop(), shopSearchQuery), shopSortMode);
+    renderCatalogList(document.getElementById("shopList"), items, "Купити", "", function(item){
+      showConfirm('Купити "' + item.name + '" за ◆ ' + fmt(item.price) + ' Robux?', function(){ buyItem(item); });
+    }, function(item){ return wallet.balance < item.price; }, true);
+  }
+  function renderSell(){
+    var items = sortItems(applySearch(sellItemsForCurrentShop(), sellSearchQuery), sellSortMode);
+    renderCatalogList(document.getElementById("sellList"), items, "Продати", "secondary", function(item){
+      showConfirm('Подати заявку на продаж "' + item.name + '" за ◆ ' + fmt(item.price) + ' Robux? Гроші нарахуються після підтвердження адміна.', function(){ sellItem(item); });
+    }, null, false);
+  }
+  function renderSellHistory(){
+    var box = document.getElementById("sellHistory");
+    if (mySellLog.length === 0){ box.innerHTML = '<div class="empty"><span class="glyph">🧾</span>Ви ще нічого не продавали.</div>'; return; }
+    box.innerHTML = "";
+    mySellLog.slice().reverse().slice(0,30).forEach(function(w){
+      var row = document.createElement("div"); row.className = "history-row";
+      var left = document.createElement("span"); left.textContent = w.name + " · " + w.date;
+      var right = document.createElement("span");
+      if (w.status === "done" || !w.status) { right.className = "amt"; right.textContent = "+" + fmt(w.price); }
+      else { right.innerHTML = statusLabel(w.status === "rejected" ? "rejected" : "requested"); }
+      row.appendChild(left); row.appendChild(right); box.appendChild(row);
+    });
+  }
+  function statusLabel(status){
+    if (status === "requested") return '<span class="badge pending">Очікує</span>';
+    if (status === "done") return '<span class="badge done">Видано</span>';
+    if (status === "rejected") return '<span class="badge rejected">Відхилено</span>';
+    return "";
+  }
+  function renderInventory(){
+    var box = document.getElementById("inventoryList");
+    var owned = myInventory.filter(function(i){ return i.status === "owned"; });
+    if (owned.length === 0){ box.innerHTML = '<div class="empty"><span class="glyph">🎒</span>Інвентар порожній. Купіть щось у магазині.</div>'; return; }
+    box.innerHTML = "";
+    owned.forEach(function(item){
+      var row = document.createElement("div");
+      row.className = "item-card";
+      row.innerHTML =
+        '<div class="item-icon">' + iconHtml(item.icon) + '</div>' +
+        '<div class="item-body"><div class="item-name"></div>' +
+        '<div class="item-meta">◆ ' + fmt(item.price) + ' Robux</div></div>' +
+        '<button class="item-action secondary">Заявка</button>';
+      row.querySelector(".item-name").textContent = item.name;
+      row.querySelector("button").addEventListener("click", function(){
+        var nick = document.getElementById("robloxNick").value.trim();
+        if (!nick){ showToast("Вкажіть свій нік у Roblox"); document.getElementById("robloxNick").focus(); return; }
+        showConfirm('Подати заявку на вивід "' + item.name + '" для ніку ' + nick + '?', function(){ requestWithdraw(item); });
+      });
+      box.appendChild(row);
+    });
+  }
+  function renderMyRequests(){
+    var box = document.getElementById("myRequests");
+    var reqs = myInventory.filter(function(i){ return i.status !== "owned"; });
+    if (reqs.length === 0){ box.innerHTML = '<div class="empty"><span class="glyph">📋</span>Заявок ще не було.</div>'; return; }
+    box.innerHTML = "";
+    reqs.slice().reverse().forEach(function(item){
+      var row = document.createElement("div"); row.className = "history-row";
+      var left = document.createElement("span"); left.textContent = item.icon + " " + item.name;
+      var right = document.createElement("span"); right.innerHTML = statusLabel(item.status);
+      row.appendChild(left); row.appendChild(right); box.appendChild(row);
+    });
+  }
+
+  function renderAdminShops(){
+    var list = document.getElementById("adminShopsList");
+    list.innerHTML = "";
+    if (shops.length === 0){ list.innerHTML = '<div class="empty"><span class="glyph">🏪</span>Додайте перший магазин нижче.</div>'; return; }
+    shops.forEach(function(shop){
+      var row = document.createElement("div");
+      row.className = "shop-admin-row";
+      row.innerHTML = '<input value="">' +
+        '<button class="item-action">Зберегти</button>' +
+        '<button class="item-action danger">Видалити</button>';
+      row.querySelector("input").value = shop.name;
+      var btns = row.querySelectorAll(".item-action");
+      btns[0].addEventListener("click", function(){
+        var name = row.querySelector("input").value.trim();
+        if (!name){ showToast("Вкажіть назву магазину"); return; }
+        saveShop(shop.id, name);
+      });
+      btns[1].addEventListener("click", function(){ deleteShop(shop.id); });
+      list.appendChild(row);
+    });
+  }
+
+  function shopOptionsHtml(selectedId){
+    return shops.map(function(s){
+      return '<option value="' + s.id + '"' + (s.id === selectedId ? " selected" : "") + '></option>';
+    }).join("");
+  }
+  function fillShopSelect(selectEl, selectedId){
+    selectEl.innerHTML = "";
+    shops.forEach(function(s){
+      var opt = document.createElement("option");
+      opt.value = s.id; opt.textContent = s.name;
+      if (s.id === selectedId) opt.selected = true;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  function renderAdminCatalog(containerId, allItems, collectionName){
+    var list = document.getElementById(containerId);
+    list.innerHTML = "";
+    if (shops.length === 0){ list.innerHTML = '<div class="empty"><span class="glyph">🏪</span>Спочатку створіть магазин вище.</div>'; return; }
+    if (allItems.length === 0){ list.innerHTML = '<div class="empty"><span class="glyph">⚙️</span>Товарів ще немає. Додайте перший нижче.</div>'; return; }
+    shops.forEach(function(shop){
+      var items = allItems.filter(function(i){ return i.shopId === shop.id; });
+      if (items.length === 0) return;
+      var group = document.createElement("div");
+      group.className = "shop-group";
+      var header = document.createElement("div");
+      header.className = "shop-group-header";
+      header.innerHTML = '<span class="bar"></span><span class="name"></span><span class="count"></span>';
+      header.querySelector(".name").textContent = shop.name;
+      header.querySelector(".count").textContent = items.length + (items.length === 1 ? " товар" : " товарів");
+      group.appendChild(header);
+      items.forEach(function(item){
+        var isImg = item.icon && item.icon.indexOf("data:image") === 0;
+        var row = document.createElement("div");
+        row.className = "admin-item";
+        var stockFieldHtml = collectionName === "shop_buy"
+          ? '<div style="margin-top:8px;"><div class="price-label">Кількість (порожньо = необмежено)</div><input class="price-input stock-field" type="number" value="' + (typeof item.stock === "number" ? item.stock : "") + '" placeholder="∞" style="width:100%;"></div>'
+          : "";
+        row.innerHTML =
+          '<div class="row0"><select class="item-shop-select"></select></div>' +
+          '<div class="icon-picker-row">' +
+            '<div class="icon-preview"></div>' +
+            '<label class="icon-file-label">📷 Фото<input type="file" accept="image/*" class="row-icon-file" hidden></label>' +
+            '<button type="button" class="icon-clear-btn" style="' + (isImg ? "" : "display:none;") + '">✕ прибрати фото</button>' +
+          '</div>' +
+          '<div class="row1"><input class="icon-input" maxlength="4"><input class="name-input"></div>' +
+          '<div class="row2">' +
+            '<div><div class="price-label">Ціна</div><input class="price-input" type="number" value="' + item.price + '"></div>' +
+            '<div class="actions"><button class="item-action">Зберегти</button><button class="item-action danger">Видалити</button></div>' +
+          '</div>' + stockFieldHtml;
+        fillShopSelect(row.querySelector(".item-shop-select"), item.shopId);
+        var preview = row.querySelector(".icon-preview");
+        var iconInput = row.querySelector(".icon-input");
+        var rowIconData = isImg ? item.icon : "";
+        if (isImg){ preview.innerHTML = '<img src="' + item.icon + '" alt="">'; iconInput.value = ""; iconInput.disabled = true; }
+        else { preview.textContent = item.icon; iconInput.value = item.icon; }
+        row.querySelector(".name-input").value = item.name;
+        row.querySelector(".row-icon-file").addEventListener("change", function(e){
+          var file = e.target.files && e.target.files[0];
+          if (!file) return;
+          if (file.size > 180000){ showToast("Зображення завелике (макс ~180КБ)"); return; }
+          var reader = new FileReader();
+          reader.onload = function(ev){
+            rowIconData = ev.target.result;
+            preview.innerHTML = '<img src="' + rowIconData + '" alt="">';
+            iconInput.value = ""; iconInput.disabled = true;
+            row.querySelector(".icon-clear-btn").style.display = "inline-block";
+          };
+          reader.readAsDataURL(file);
+        });
+        row.querySelector(".icon-clear-btn").addEventListener("click", function(){
+          rowIconData = ""; preview.textContent = "🎁"; iconInput.disabled = false; iconInput.value = "";
+          this.style.display = "none";
+        });
+        var btns = row.querySelectorAll(".item-action");
+        btns[0].addEventListener("click", function(){
+          var icon = rowIconData || iconInput.value.trim() || "🎁";
+          var name = row.querySelector(".name-input").value.trim();
+          var price = parseFloat(row.querySelector(".price-input").value) || 0;
+          var shopId = row.querySelector(".item-shop-select").value;
+          if (!name) { showToast("Вкажіть назву товару"); return; }
+          var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: item.createdAt || Date.now() };
+          var stockField = row.querySelector(".stock-field");
+          if (stockField) payload.stock = stockField.value === "" ? null : Math.max(0, parseInt(stockField.value, 10) || 0);
+          saveItem(collectionName, item.id, payload);
+        });
+        btns[1].addEventListener("click", function(){ deleteItem(collectionName, item.id); });
+        group.appendChild(row);
+      });
+      list.appendChild(group);
+    });
+  }
+
+  var requestsSearchQuery = "";
+  function renderWithdrawRequests(){
+    var box = document.getElementById("withdrawRequestsList");
+    var list = requestsSearchQuery
+      ? pendingRequests.filter(function(r){ return (r.robloxNick||"").toLowerCase().indexOf(requestsSearchQuery.toLowerCase()) !== -1; })
+      : pendingRequests;
+    if (list.length === 0){ box.innerHTML = '<div class="empty"><span class="glyph">📥</span>Немає активних заявок.</div>'; return; }
+    box.innerHTML = "";
+    list.forEach(function(req){
+      var row = document.createElement("div");
+      row.className = "request-row";
+      row.innerHTML =
+        '<div class="top-line"><span style="font-size:1.3rem;"></span><strong></strong><span style="margin-left:auto;color:var(--robux);font-weight:700;font-size:0.82rem;"></span></div>' +
+        '<div class="nick"></div>' +
+        '<div class="actions"><button class="item-action">Видано</button><button class="item-action danger">Відхилити</button></div>';
+      row.querySelector(".top-line span").textContent = req.icon;
+      row.querySelector(".top-line strong").textContent = req.name;
+      row.querySelector(".top-line span:last-child").textContent = "◆ " + fmt(req.price) + " Robux";
+      row.querySelector(".nick").textContent = "Roblox нік: " + (req.robloxNick || "—");
+      var btns = row.querySelectorAll(".item-action");
+      btns[0].addEventListener("click", function(){
+        showConfirm('Позначити видачу "' + req.name + '" для ' + (req.robloxNick||"—") + ' виконаною?', function(){ resolveRequest(req.id, "done"); });
+      });
+      btns[1].addEventListener("click", function(){
+        showConfirm('Відхилити заявку на "' + req.name + '"?', function(){ resolveRequest(req.id, "rejected"); });
+      });
+      box.appendChild(row);
+    });
+  }
+  function renderAdminSellLog(){
+    var box = document.getElementById("sellLogList");
+    if (adminSellLog.length === 0){ box.innerHTML = '<div class="empty"><span class="glyph">🧾</span>Продажів ще не було.</div>'; return; }
+    box.innerHTML = "";
+    adminSellLog.forEach(function(w){
+      if (w.status === "pending"){
+        var row = document.createElement("div");
+        row.className = "request-row";
+        row.innerHTML =
+          '<div class="top-line"><span style="font-size:1.3rem;"></span><strong></strong><span style="margin-left:auto;color:var(--robux);font-weight:700;font-size:0.82rem;"></span></div>' +
+          '<div class="actions"><button class="item-action">Прийняти</button><button class="item-action danger">Відхилити</button></div>';
+        row.querySelector(".top-line span").textContent = w.icon;
+        row.querySelector(".top-line strong").textContent = w.name;
+        row.querySelector(".top-line span:last-child").textContent = "◆ " + fmt(w.price) + " Robux";
+        var btns = row.querySelectorAll(".item-action");
+        btns[0].addEventListener("click", function(){
+          showConfirm('Прийняти продаж "' + w.name + '" і нарахувати ◆ ' + fmt(w.price) + ' Robux гравцю?', function(){ acceptSell(w); });
+        });
+        btns[1].addEventListener("click", function(){
+          showConfirm('Відхилити заявку на продаж "' + w.name + '"?', function(){ rejectSell(w.id); });
+        });
+        box.appendChild(row);
+      } else {
+        var hrow = document.createElement("div"); hrow.className = "history-row";
+        var left = document.createElement("span"); left.textContent = w.name + " · " + w.date;
+        var right = document.createElement("span");
+        if (w.status === "rejected") right.innerHTML = statusLabel("rejected");
+        else { right.className = "amt"; right.textContent = "+" + fmt(w.price); }
+        hrow.appendChild(left); hrow.appendChild(right); box.appendChild(hrow);
+      }
+    });
+  }
+  function acceptSell(sale){
+    if (localMode || !db) return;
+    db.collection("wallets").doc(sale.uid).get().then(function(snap){
+      var data = snap.exists ? (snap.data() || {}) : { balance: 0, robloxNick: "" };
+      var newBalance = (data.balance || 0) + sale.price;
+      return db.collection("wallets").doc(sale.uid).set({ balance: newBalance, robloxNick: data.robloxNick || "" }).then(function(){
+        if (data.robloxNick) db.collection("player_directory").doc(sale.uid).set({ robloxNick: data.robloxNick, balance: newBalance, updatedAt: Date.now() }).catch(function(){});
+      });
+    }).then(function(){
+      return db.collection("sell_log").doc(sale.id).update({ status: "done", decidedAt: Date.now() });
+    }).then(function(){ showToast("Прийнято, нараховано " + fmt(sale.price) + " Robux"); })
+      .catch(function(){ showToast("Не вдалося обробити продаж"); });
+  }
+  function rejectSell(saleId){
+    if (localMode || !db) return;
+    db.collection("sell_log").doc(saleId).update({ status: "rejected", decidedAt: Date.now() })
+      .then(function(){ showToast("Заявку відхилено"); })
+      .catch(function(){ showToast("Не вдалося відхилити"); });
+  }
+
+  function renderStats(){
+    var box = document.getElementById("statsRow");
+    var pendingSellsCount = adminSellLog.filter(function(w){ return w.status === "pending"; }).length;
+    var stats = [
+      { num: shops.length, lbl: "Магазинів" },
+      { num: pendingRequests.length, lbl: "Заявок на вивід" },
+      { num: pendingSellsCount, lbl: "Заявок на продаж" }
+    ];
+    box.innerHTML = "";
+    stats.forEach(function(s){
+      var card = document.createElement("div");
+      card.className = "stat-card";
+      card.innerHTML = '<div class="num"></div><div class="lbl"></div>';
+      card.querySelector(".num").textContent = s.num;
+      card.querySelector(".lbl").textContent = s.lbl;
+      box.appendChild(card);
+    });
+  }
+
+  var playerDirectory = [];
+  var grantSearchQuery = "";
+  function renderGrantList(){
+    var box = document.getElementById("grantList");
+    var list = grantSearchQuery
+      ? playerDirectory.filter(function(p){ return p.robloxNick.toLowerCase().indexOf(grantSearchQuery.toLowerCase()) !== -1; })
+      : playerDirectory;
+    if (list.length === 0){ box.innerHTML = '<div class="empty"><span class="glyph">🎁</span>' + (grantSearchQuery ? "Нікого не знайдено." : "Гравці зʼявляться тут, як тільки вкажуть свій нік.") + '</div>'; return; }
+    box.innerHTML = "";
+    list.slice(0, 40).forEach(function(p){
+      var row = document.createElement("div");
+      row.className = "grant-row";
+      row.innerHTML =
+        '<div class="nick-line"><span></span><span class="bal"></span></div>' +
+        '<div class="grant-controls"><input type="number" placeholder="Сума"><button class="item-action" style="flex-shrink:0;">Видати</button></div>';
+      row.querySelector(".nick-line span").textContent = p.robloxNick;
+      row.querySelector(".bal").textContent = "◆ " + fmt(p.balance || 0);
+      var input = row.querySelector("input");
+      row.querySelector("button").addEventListener("click", function(){
+        var amount = parseFloat(input.value);
+        if (!amount || amount <= 0){ showToast("Вкажіть суму"); return; }
+        showConfirm('Видати ' + fmt(amount) + ' Robux гравцю ' + p.robloxNick + '?', function(){ grantRobux(p.uid, amount, p.robloxNick); input.value = ""; });
+      });
+      box.appendChild(row);
+    });
+  }
+  function grantRobux(targetUid, amount, nick){
+    if (localMode || !db) return;
+    db.collection("wallets").doc(targetUid).get().then(function(snap){
+      var data = snap.exists ? (snap.data() || {}) : { balance: 0, robloxNick: nick };
+      var newBalance = (data.balance || 0) + amount;
+      return db.collection("wallets").doc(targetUid).set({ balance: newBalance, robloxNick: data.robloxNick || nick }).then(function(){
+        return db.collection("player_directory").doc(targetUid).set({ robloxNick: data.robloxNick || nick, balance: newBalance, updatedAt: Date.now() });
+      });
+    }).then(function(){ showToast("Видано " + fmt(amount) + " Robux гравцю " + nick); })
+      .catch(function(){ showToast("Не вдалося видати Robux"); });
+  }
+
+  function csvEscape(v){ return '"' + String(v).replace(/"/g, '""') + '"'; }
+  function downloadCsv(filename, rows){
+    var csv = rows.map(function(r){ return r.map(csvEscape).join(","); }).join("\r\n");
+    var blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 2000);
+  }
+  document.getElementById("exportSalesBtn").addEventListener("click", function(){
+    var rows = [["Товар", "Ціна", "Дата", "Статус"]];
+    adminSellLog.forEach(function(w){ rows.push([w.name, w.price, w.date, w.status]); });
+    downloadCsv("bears_sales.csv", rows);
+  });
+  document.getElementById("exportRequestsBtn").addEventListener("click", function(){
+    var rows = [["Товар", "Ціна", "Roblox нік", "Статус"]];
+    allWithdrawHistory.forEach(function(r){ rows.push([r.name, r.price, r.robloxNick || "", r.status]); });
+    downloadCsv("bears_withdraw_requests.csv", rows);
+  });
+  document.getElementById("requestsSearch").addEventListener("input", function(){ requestsSearchQuery = this.value; renderWithdrawRequests(); });
+  document.getElementById("grantSearch").addEventListener("input", function(){ grantSearchQuery = this.value; renderGrantList(); });
+
+  function renderAdmin(){
+    document.getElementById("adminBuyTitle").textContent = "🛍️ Купівля — усі магазини";
+    document.getElementById("adminSellTitle").textContent = "🐾 Продаж — усі магазини";
+    renderStats();
+    renderAdminShops();
+    renderAdminCatalog("adminBuyList", allBuyItems, "shop_buy");
+    renderAdminCatalog("adminSellList", allSellItems, "shop_sell");
+    fillShopSelect(document.getElementById("newBuyShop"), document.getElementById("newBuyShop").value || currentShopId);
+    fillShopSelect(document.getElementById("newSellShop"), document.getElementById("newSellShop").value || currentShopId);
+    renderWithdrawRequests();
+    renderGrantList();
+    renderAdminSellLog();
+  }
+
+  function renderAll(){
+    renderShopSwitcher();
+    renderBalance(); renderShop(); renderSell(); renderSellHistory();
+    renderInventory(); renderMyRequests();
+    if (isAdmin) renderAdmin();
+  }
+
+  // ---------- wallet persistence ----------
+  function persistWallet(){
+    if (localMode){ saveLocal(); return Promise.resolve(); }
+    if (!db || !uid) return Promise.resolve();
+    if (wallet.robloxNick){
+      db.collection("player_directory").doc(uid).set({ robloxNick: wallet.robloxNick, balance: wallet.balance, updatedAt: Date.now() }).catch(function(){});
+    }
+    return db.collection("wallets").doc(uid).set({ balance: wallet.balance, robloxNick: wallet.robloxNick })
+      .catch(function(){ showToast("Не вдалося зберегти баланс"); });
+  }
+
+  // ---------- buy / sell ----------
+  function buyItem(item){
+    if (wallet.balance < item.price) return;
+    if (typeof item.stock === "number" && item.stock <= 0){ showToast("Товару немає в наявності"); return; }
+    wallet.balance -= item.price;
+    if (localMode){
+      myInventory.push({ id: "local_" + Date.now() + Math.random().toString(36).slice(2,6),
+        name: item.name, icon: item.icon, price: item.price, status: "owned", robloxNick: "" });
+      renderAll(); saveLocal(); showToast("Куплено: " + item.name); return;
+    }
+    db.collection("inventory").add({ uid: uid, name: item.name, icon: item.icon, price: item.price, status: "owned", robloxNick: "", createdAt: Date.now() })
+      .then(function(){ showToast("Куплено: " + item.name); })
+      .catch(function(){ wallet.balance += item.price; renderAll(); showToast("Не вдалося купити"); });
+    if (typeof item.stock === "number"){
+      db.collection("shop_buy").doc(item.id).update({ stock: Math.max(0, item.stock - 1) }).catch(function(){});
+    }
+    renderAll(); persistWallet();
+  }
+
+  function sellItem(item){
+    if (localMode){
+      wallet.balance += item.price;
+      var logEntry = { name: item.name, icon: item.icon, price: item.price, status: "done",
+        date: new Date().toLocaleDateString("uk-UA", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) };
+      mySellLog.push(logEntry);
+      renderAll(); saveLocal(); showToast("Продано: " + item.name + " за " + fmt(item.price));
+      return;
+    }
+    db.collection("sell_log").add({ uid: uid, name: item.name, icon: item.icon, price: item.price, at: Date.now(), status: "pending" })
+      .then(function(){ showToast("Заявку на продаж подано, очікує підтвердження адміна"); })
+      .catch(function(){ showToast("Не вдалося подати заявку"); });
+  }
+
+  // ---------- withdraw requests ----------
+  function requestWithdraw(item){
+    var nick = document.getElementById("robloxNick").value.trim();
+    if (!nick){ showToast("Вкажіть свій нік у Roblox"); document.getElementById("robloxNick").focus(); return; }
+    wallet.robloxNick = nick;
+    if (localMode){ item.status = "requested"; item.robloxNick = nick; renderAll(); saveLocal(); showToast("Заявку подано"); return; }
+    db.collection("inventory").doc(item.id).update({ status: "requested", robloxNick: nick, requestedAt: Date.now() })
+      .then(function(){ showToast("Заявку подано"); }).catch(function(){ showToast("Не вдалося подати заявку"); });
+    persistWallet();
+  }
+  function resolveRequest(id, status){
+    if (localMode || !db) return;
+    db.collection("inventory").doc(id).update({ status: status, decidedAt: Date.now() })
+      .then(function(){ showToast(status === "done" ? "Позначено виданим" : "Заявку відхилено"); })
+      .catch(function(){ showToast("Не вдалося оновити заявку"); });
+  }
+
+  // ---------- admin: shops ----------
+  function saveShop(id, name){
+    if (localMode || !db) return;
+    db.collection("shops").doc(id).update({ name: name })
+      .then(function(){ showToast("Магазин перейменовано"); })
+      .catch(function(){ showToast("Не вдалося зберегти"); });
+  }
+  function deleteShop(id){
+    if (localMode || !db) return;
+    db.collection("shops").doc(id).delete().then(function(){
+      showToast("Магазин видалено");
+      if (currentShopId === id) currentShopId = null;
+    }).catch(function(){ showToast("Не вдалося видалити магазин"); });
+  }
+  function addNewShop(){
+    if (localMode || !db){ showToast("Додавання доступне лише в опублікованому застосунку"); return; }
+    var name = document.getElementById("newShopName").value.trim();
+    if (!name){ showToast("Вкажіть назву магазину"); return; }
+    db.collection("shops").add({ name: name }).then(function(ref){
+      document.getElementById("newShopName").value = "";
+      if (!currentShopId) currentShopId = ref.id;
+      showToast("Магазин додано: " + name);
+    }).catch(function(){ showToast("Не вдалося додати магазин"); });
+  }
+
+  // ---------- admin: catalog editing ----------
+  function saveItem(collectionName, id, data){
+    if (localMode || !db){ showToast("Редагування доступне лише в опублікованому застосунку"); return; }
+    db.collection(collectionName).doc(id).set(data).then(function(){ showToast("Збережено: " + data.name); })
+      .catch(function(){ showToast("Не вдалося зберегти"); });
+  }
+  function deleteItem(collectionName, id){
+    if (localMode || !db) return;
+    db.collection(collectionName).doc(id).delete().then(function(){ showToast("Товар видалено"); })
+      .catch(function(){ showToast("Не вдалося видалити"); });
+  }
+  function addNewItem(collectionName, iconId, nameId, priceId, shopSelectId, iconDataId, stockId){
+    if (localMode || !db){ showToast("Додавання доступне лише в опублікованому застосунку"); return; }
+    var shopId = document.getElementById(shopSelectId).value;
+    if (!shopId){ showToast("Спочатку створіть магазин"); return; }
+    var iconData = iconDataId ? document.getElementById(iconDataId).value : "";
+    var icon = iconData || document.getElementById(iconId).value.trim() || "🎁";
+    var name = document.getElementById(nameId).value.trim();
+    var price = parseFloat(document.getElementById(priceId).value) || 0;
+    if (!name){ showToast("Вкажіть назву товару"); return; }
+    var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: Date.now() };
+    if (stockId){
+      var stockVal = document.getElementById(stockId).value;
+      payload.stock = stockVal === "" ? null : Math.max(0, parseInt(stockVal, 10) || 0);
+    }
+    db.collection(collectionName).add(payload).then(function(){
+      document.getElementById(iconId).value = ""; document.getElementById(nameId).value = ""; document.getElementById(priceId).value = "";
+      if (iconDataId){ document.getElementById(iconDataId).value = ""; resetIconPreview(iconDataId); }
+      if (stockId) document.getElementById(stockId).value = "";
+      showToast("Товар додано: " + name);
+    }).catch(function(){ showToast("Не вдалося додати товар"); });
+  }
+
+  // ---------- icon picker (emoji or small uploaded image) ----------
+  function resetIconPreview(iconDataId){
+    var previewId = iconDataId.replace("Data", "Preview");
+    var clearId = iconDataId.replace("Data", "Clear");
+    var preview = document.getElementById(previewId);
+    var clearBtn = document.getElementById(clearId);
+    if (preview) preview.innerHTML = "🎁";
+    if (clearBtn) clearBtn.style.display = "none";
+  }
+  function wireIconPicker(fileId, dataId, previewId, clearId){
+    var fileInput = document.getElementById(fileId);
+    var clearBtn = document.getElementById(clearId);
+    if (!fileInput) return;
+    fileInput.addEventListener("change", function(e){
+      var file = e.target.files && e.target.files[0];
+      if (!file) return;
+      if (file.size > 180000){ showToast("Зображення завелике (макс ~180КБ)"); fileInput.value = ""; return; }
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        document.getElementById(dataId).value = ev.target.result;
+        document.getElementById(previewId).innerHTML = '<img src="' + ev.target.result + '" alt="">';
+        if (clearBtn) clearBtn.style.display = "inline-block";
+      };
+      reader.readAsDataURL(file);
+    });
+    if (clearBtn){
+      clearBtn.addEventListener("click", function(){
+        document.getElementById(dataId).value = "";
+        document.getElementById(previewId).innerHTML = "🎁";
+        fileInput.value = "";
+        clearBtn.style.display = "none";
+      });
+    }
+  }
+  wireIconPicker("newBuyIconFile", "newBuyIconData", "newBuyIconPreview", "newBuyIconClear");
+  wireIconPicker("newSellIconFile", "newSellIconData", "newSellIconPreview", "newSellIconClear");
+
+  // ---------- tabs ----------
+  function switchTab(name){
+    document.querySelectorAll(".screen").forEach(function(s){ s.classList.remove("active"); });
+    document.querySelectorAll(".tab-btn").forEach(function(b){ b.classList.remove("active"); });
+    document.getElementById("screen-" + name).classList.add("active");
+    document.querySelector('.tab-btn[data-tab="' + name + '"]').classList.add("active");
+  }
+  document.querySelectorAll(".tab-btn").forEach(function(btn){
+    btn.addEventListener("click", function(){ switchTab(btn.getAttribute("data-tab")); });
+  });
+  document.getElementById("robloxNick").addEventListener("change", function(){ wallet.robloxNick = this.value.trim(); persistWallet(); });
+  document.getElementById("shopSearch").addEventListener("input", function(){ shopSearchQuery = this.value; renderShop(); });
+  document.getElementById("sellSearch").addEventListener("input", function(){ sellSearchQuery = this.value; renderSell(); });
+  document.getElementById("shopSort").addEventListener("change", function(){ shopSortMode = this.value; renderShop(); });
+  document.getElementById("sellSort").addEventListener("change", function(){ sellSortMode = this.value; renderSell(); });
+
+  function applyTheme(theme){
+    document.documentElement.setAttribute("data-theme", theme);
+    document.getElementById("themeToggle").textContent = theme === "light" ? "☀️" : "🌙";
+    try { localStorage.setItem("bears_company_theme", theme); } catch(e){}
+  }
+  document.getElementById("themeToggle").addEventListener("click", function(){
+    var current = document.documentElement.getAttribute("data-theme") === "light" ? "light" : "dark";
+    applyTheme(current === "light" ? "dark" : "light");
+  });
+  (function(){
+    var saved = null;
+    try { saved = localStorage.getItem("bears_company_theme"); } catch(e){}
+    if (saved === "light" || saved === "dark") applyTheme(saved);
+  })();
+  document.getElementById("addBuyBtn").addEventListener("click", function(){ addNewItem("shop_buy", "newBuyIcon", "newBuyName", "newBuyPrice", "newBuyShop", "newBuyIconData", "newBuyStock"); });
+  document.getElementById("addSellBtn").addEventListener("click", function(){ addNewItem("shop_sell", "newSellIcon", "newSellName", "newSellPrice", "newSellShop", "newSellIconData"); });
+  document.getElementById("addShopBtn").addEventListener("click", addNewShop);
+
+  // ---------- boot ----------
+  function enterLocalMode(reason){
+    localMode = true;
+    shops = [defaultShop]; currentShopId = "default";
+    allBuyItems = defaultBuyCatalog.slice(); allSellItems = defaultSellCatalog.slice();
+    localState = loadLocal();
+    wallet = { balance: localState.balance || 0, robloxNick: localState.robloxNick || "" };
+    myInventory = localState.inventory || []; mySellLog = localState.sellLog || [];
+    document.getElementById("robloxNick").value = wallet.robloxNick;
+    document.getElementById("syncNote").textContent = reason || "Демо-режим: дані зберігаються лише у цьому браузері.";
+    renderAll();
+  }
+
+  function boot(){
+    // Telegram WebApp identity
+    var tg = window.Telegram && window.Telegram.WebApp;
+    if (tg){
+      tg.ready(); tg.expand();
+      try { tg.setHeaderColor(getComputedStyle(document.documentElement).getPropertyValue("--surface").trim()); } catch(e){}
+    }
+    var tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+    if (!tgUser || !tgUser.id){
+      enterLocalMode("Відкрито поза Telegram: дані зберігаються лише у цьому браузері.");
+      return;
+    }
+    uid = String(tgUser.id);
+    isAdmin = ADMIN_TELEGRAM_IDS.map(String).indexOf(uid) !== -1;
+
+    if (typeof firebase === "undefined" || !firebaseConfig || !firebaseConfig.apiKey){
+      enterLocalMode("Firebase не підключено: дані зберігаються лише у цьому браузері.");
+      return;
+    }
+    try {
+      if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch(e){ enterLocalMode("Не вдалося підключити Firebase."); return; }
+    document.getElementById("syncNote").textContent = "";
+
+    if (isAdmin){
+      document.getElementById("adminPill").style.display = "inline-block";
+      document.getElementById("adminTabBtn").style.display = "flex";
+      db.collection("inventory").where("status","==","requested").onSnapshot(function(snap){
+        pendingRequests = snap.docs.map(function(d){ var v = d.data() || {}; v.id = d.id; return v; });
+        if (isAdmin) renderWithdrawRequests();
+      }, function(){});
+      db.collection("inventory").orderBy("createdAt","desc").limit(300).onSnapshot(function(snap){
+        allWithdrawHistory = snap.docs.map(function(d){ var v = d.data() || {}; v.id = d.id; return v; })
+          .filter(function(v){ return v.status !== "owned"; });
+      }, function(){});
+      db.collection("player_directory").onSnapshot(function(snap){
+        playerDirectory = snap.docs.map(function(d){ var v = d.data() || {}; return { uid: d.id, robloxNick: v.robloxNick || "—", balance: v.balance || 0 }; })
+          .sort(function(a,b){ return a.robloxNick.localeCompare(b.robloxNick, "uk"); });
+        if (isAdmin) renderGrantList();
+      }, function(){});
+      db.collection("sell_log").orderBy("at","desc").limit(50).onSnapshot(function(snap){
+        adminSellLog = snap.docs.map(function(d){
+          var v = d.data() || {};
+          return { id: d.id, uid: v.uid, name: v.name, price: v.price, icon: v.icon, status: v.status || "done",
+            date: new Date(v.at || Date.now()).toLocaleDateString("uk-UA", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) };
+        });
+        if (isAdmin){ renderAdminSellLog(); renderStats(); }
+      }, function(){});
+    }
+
+    db.collection("shops").onSnapshot(function(snap){
+      shops = snap.docs.map(function(d){ var v = d.data() || {}; return { id: d.id, name: v.name || "Магазин" }; });
+      if (!currentShopId || !shops.some(function(s){ return s.id === currentShopId; })){
+        currentShopId = shops.length ? shops[0].id : null;
+      }
+      renderAll();
+      if (isAdmin && shops.length === 0){
+        db.collection("shops").doc("default").set({ name: defaultShop.name }).then(function(){
+          defaultBuyCatalog.forEach(function(it){ db.collection("shop_buy").doc(it.id).set(it).catch(function(){}); });
+          defaultSellCatalog.forEach(function(it){ db.collection("shop_sell").doc(it.id).set(it).catch(function(){}); });
+        }).catch(function(){});
+      }
+    }, function(){});
+
+    db.collection("shop_buy").onSnapshot(function(snap){
+      allBuyItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId||"default", createdAt:v.createdAt||0, stock: typeof v.stock === "number" ? v.stock : null }; });
+      renderAll();
+    }, function(){});
+
+    db.collection("shop_sell").onSnapshot(function(snap){
+      allSellItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId||"default", createdAt:v.createdAt||0 }; });
+      renderAll();
+    }, function(){});
+
+    db.collection("wallets").doc(uid).onSnapshot(function(snap){
+      var data = snap.exists ? (snap.data() || {}) : {};
+      wallet.balance = typeof data.balance === "number" ? data.balance : 0;
+      wallet.robloxNick = data.robloxNick || "";
+      document.getElementById("robloxNick").value = wallet.robloxNick;
+      renderAll();
+    }, function(){});
+
+    db.collection("inventory").where("uid","==",uid).onSnapshot(function(snap){
+      myInventory = snap.docs.map(function(d){ var v = d.data() || {}; v.id = d.id; return v; });
+      renderAll();
+    }, function(){});
+
+    db.collection("sell_log").where("uid","==",uid).onSnapshot(function(snap){
+      mySellLog = snap.docs.map(function(d){
+        var v = d.data() || {};
+        return { name: v.name, price: v.price, icon: v.icon, status: v.status || "done",
+          date: new Date(v.at || Date.now()).toLocaleDateString("uk-UA", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) };
+      });
+      renderSellHistory();
+    }, function(){});
+  }
+
+  renderBalance();
+  boot();
+})();
+</script>
+</body>
+</html>
