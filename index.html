@@ -448,18 +448,6 @@
     } catch(e){}
   }
 
-  var defaultShop = { id:"default", name:"Головний магазин" };
-  var defaultBuyCatalog = [
-    { id:"honey_jar", name:"Баночка меду", icon:"🍯", price:40, shopId:"default", createdAt:0, stock:null },
-    { id:"warm_coat", name:"Тепла шуба", icon:"🧥", price:120, shopId:"default", createdAt:0, stock:null },
-    { id:"golden_claw", name:"Золотий пазур", icon:"🏅", price:300, shopId:"default", createdAt:0, stock:null }
-  ];
-  var defaultSellCatalog = [
-    { id:"old_sword", name:"Старий меч", icon:"🗡️", price:35, shopId:"default", createdAt:0 },
-    { id:"treasure_map", name:"Карта скарбів", icon:"🗺️", price:60, shopId:"default", createdAt:0 },
-    { id:"gem", name:"Дорогоцінний камінь", icon:"💎", price:150, shopId:"default", createdAt:0 }
-  ];
-
   // ---------- rendering ----------
   function renderBalance(){ document.getElementById("balanceValue").textContent = fmt(wallet.balance); }
 
@@ -957,7 +945,7 @@
     }).catch(function(){ showToast("Не вдалося видалити магазин"); });
   }
   function addNewShop(){
-    if (localMode || !db){ showToast("Додавання доступне лише в опублікованому застосунку"); return; }
+    if (localMode || !db){ showToast("Немає зʼєднання з базою даних"); return; }
     var name = document.getElementById("newShopName").value.trim();
     if (!name){ showToast("Вкажіть назву магазину"); return; }
     db.collection("shops").add({ name: name }).then(function(ref){
@@ -969,7 +957,7 @@
 
   // ---------- admin: catalog editing ----------
   function saveItem(collectionName, id, data){
-    if (localMode || !db){ showToast("Редагування доступне лише в опублікованому застосунку"); return; }
+    if (localMode || !db){ showToast("Немає зʼєднання з базою даних"); return; }
     db.collection(collectionName).doc(id).set(data).then(function(){ showToast("Збережено: " + data.name); })
       .catch(function(){ showToast("Не вдалося зберегти"); });
   }
@@ -979,7 +967,7 @@
       .catch(function(){ showToast("Не вдалося видалити"); });
   }
   function addNewItem(collectionName, iconId, nameId, priceId, shopSelectId, iconDataId, stockId){
-    if (localMode || !db){ showToast("Додавання доступне лише в опублікованому застосунку"); return; }
+    if (localMode || !db){ showToast("Немає зʼєднання з базою даних"); return; }
     var shopId = document.getElementById(shopSelectId).value;
     if (!shopId){ showToast("Спочатку створіть магазин"); return; }
     var iconData = iconDataId ? document.getElementById(iconDataId).value : "";
@@ -1074,8 +1062,8 @@
   // ---------- boot ----------
   function enterLocalMode(reason){
     localMode = true;
-    shops = [defaultShop]; currentShopId = "default";
-    allBuyItems = defaultBuyCatalog.slice(); allSellItems = defaultSellCatalog.slice();
+    shops = []; currentShopId = null;
+    allBuyItems = []; allSellItems = [];
     localState = loadLocal();
     wallet = { balance: localState.balance || 0, robloxNick: localState.robloxNick || "" };
     myInventory = localState.inventory || []; mySellLog = localState.sellLog || [];
@@ -1141,21 +1129,15 @@
         currentShopId = shops.length ? shops[0].id : null;
       }
       renderAll();
-      if (isAdmin && shops.length === 0){
-        db.collection("shops").doc("default").set({ name: defaultShop.name }).then(function(){
-          defaultBuyCatalog.forEach(function(it){ db.collection("shop_buy").doc(it.id).set(it).catch(function(){}); });
-          defaultSellCatalog.forEach(function(it){ db.collection("shop_sell").doc(it.id).set(it).catch(function(){}); });
-        }).catch(function(){});
-      }
     }, function(){});
 
     db.collection("shop_buy").onSnapshot(function(snap){
-      allBuyItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId||"default", createdAt:v.createdAt||0, stock: typeof v.stock === "number" ? v.stock : null }; });
+      allBuyItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId, createdAt:v.createdAt||0, stock: typeof v.stock === "number" ? v.stock : null }; });
       renderAll();
     }, function(){});
 
     db.collection("shop_sell").onSnapshot(function(snap){
-      allSellItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId||"default", createdAt:v.createdAt||0 }; });
+      allSellItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId, createdAt:v.createdAt||0 }; });
       renderAll();
     }, function(){});
 
