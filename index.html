@@ -82,6 +82,7 @@
     padding:12px 14px; font-size:1rem; color:var(--ink); font-family:inherit; }
   .field input:focus { outline:2px solid var(--honey); outline-offset:1px; }
   .hint { font-size:0.76rem; color:var(--ink-dim); margin-top:10px; line-height:1.4; }
+  .hint.low { color:var(--danger); }
 
   .badge { font-size:0.72rem; padding:3px 9px; border-radius:20px; font-weight:600; white-space:nowrap; }
   .badge.pending { background:rgba(217,162,78,0.18); color:var(--honey-soft); }
@@ -247,6 +248,17 @@
         </div>
         <div class="hint">Вкажіть свій нік перед подачею заявки — він збережеться для наступних разів.</div>
       </div>
+
+      <div class="history-title">💰 Вивід Robux (від 30 шт)</div>
+      <div class="withdraw-box">
+        <div class="field" style="margin-bottom:10px;">
+          <label for="robuxWithdrawAmount">Скільки Robux вивести</label>
+          <input type="text" inputmode="decimal" id="robuxWithdrawAmount" placeholder="від 30">
+        </div>
+        <div class="hint" id="gamepassHint">Мінімум для виводу — 30 Robux.</div>
+        <button class="item-action" id="robuxWithdrawBtn" style="margin-top:4px; width:100%;">Подати заявку на вивід</button>
+      </div>
+
       <div class="history-title">Мій інвентар</div>
       <div id="inventoryList"></div>
       <div class="history-title">Мої заявки на вивід</div>
@@ -710,7 +722,11 @@
       row.querySelector(".req-icon").innerHTML = iconHtml(req.icon);
       row.querySelector(".top-line strong").textContent = req.name;
       row.querySelector(".top-line span:last-child").textContent = "◆ " + fmt(req.price) + " Robux";
-      row.querySelector(".nick").textContent = "Roblox нік: " + (req.robloxNick || "—");
+      if (req.type === "robux"){
+        row.querySelector(".nick").innerHTML = "Roblox нік: <strong>" + (req.robloxNick || "—") + "</strong><br>Створіть гейм-пас на суму: <strong>◆ " + fmt(req.gamepassPrice) + " Robux</strong> (після комісії Roblox 30% гравець отримає " + fmt(req.price) + ")";
+      } else {
+        row.querySelector(".nick").textContent = "Roblox нік: " + (req.robloxNick || "—");
+      }
       var btns = row.querySelectorAll(".item-action");
       btns[0].addEventListener("click", function(){
         showConfirm('Позначити видачу "' + req.name + '" для ' + (req.robloxNick||"—") + ' виконаною?', function(){ resolveRequest(req.id, "done"); });
@@ -731,10 +747,12 @@
         row.className = "request-row";
         row.innerHTML =
           '<div class="top-line"><span class="req-icon"></span><strong></strong><span style="margin-left:auto;color:var(--robux);font-weight:700;font-size:0.82rem;"></span></div>' +
+          '<div class="nick"></div>' +
           '<div class="actions"><button class="item-action">Прийняти</button><button class="item-action danger">Відхилити</button></div>';
         row.querySelector(".req-icon").innerHTML = iconHtml(w.icon);
         row.querySelector(".top-line strong").textContent = w.name;
         row.querySelector(".top-line span:last-child").textContent = "◆ " + fmt(w.price) + " Robux";
+        row.querySelector(".nick").textContent = "Roblox нік: " + (w.robloxNick || "—");
         var btns = row.querySelectorAll(".item-action");
         btns[0].addEventListener("click", function(){
           showConfirm('Прийняти продаж "' + w.name + '" і нарахувати ◆ ' + fmt(w.price) + ' Robux гравцю?', function(){ acceptSell(w); });
@@ -846,8 +864,8 @@
     downloadCsv("bears_sales.csv", rows);
   });
   document.getElementById("exportRequestsBtn").addEventListener("click", function(){
-    var rows = [["Товар", "Ціна", "Roblox нік", "Статус"]];
-    allWithdrawHistory.forEach(function(r){ rows.push([r.name, r.price, r.robloxNick || "", r.status]); });
+    var rows = [["Тип", "Товар", "Ціна", "Гейм-пас (якщо Robux)", "Roblox нік", "Статус"]];
+    allWithdrawHistory.forEach(function(r){ rows.push([r.type === "robux" ? "Вивід Robux" : "Предмет", r.name, r.price, r.gamepassPrice || "", r.robloxNick || "", r.status]); });
     downloadCsv("bears_withdraw_requests.csv", rows);
   });
   document.getElementById("requestsSearch").addEventListener("input", function(){ requestsSearchQuery = this.value; renderWithdrawRequests(); });
@@ -913,7 +931,7 @@
       renderAll(); saveLocal(); showToast("Продано: " + item.name + " за " + fmt(item.price));
       return;
     }
-    db.collection("sell_log").add({ uid: uid, name: item.name, icon: item.icon, price: item.price, at: Date.now(), status: "pending" })
+    db.collection("sell_log").add({ uid: uid, name: item.name, icon: item.icon, price: item.price, at: Date.now(), status: "pending", robloxNick: wallet.robloxNick || "" })
       .then(function(){ showToast("Заявку на продаж подано, очікує підтвердження адміна"); })
       .catch(function(){ showToast("Не вдалося подати заявку"); });
   }
@@ -928,8 +946,58 @@
       .then(function(){ showToast("Заявку подано"); }).catch(function(){ showToast("Не вдалося подати заявку"); });
     persistWallet();
   }
+
+  var GAMEPASS_CUT = 0.3; // Roblox's marketplace cut on gamepass/product sales
+  function gamepassPriceFor(amount){ return r3(amount / (1 - GAMEPASS_CUT)); }
+  document.getElementById("robuxWithdrawAmount").addEventListener("input", function(){
+    var amt = parseNum(this.value);
+    var hint = document.getElementById("gamepassHint");
+    if (!amt){ hint.textContent = "Мінімум для виводу — 30 Robux."; hint.classList.remove("low"); return; }
+    if (amt < 30){ hint.textContent = "Мінімум для виводу — 30 Robux."; hint.classList.add("low"); return; }
+    hint.classList.remove("low");
+    hint.textContent = "Адмін створить гейм-пас на суму ◆ " + fmt(gamepassPriceFor(amt)) + " Robux — після комісії Roblox (30%) ви отримаєте ◆ " + fmt(amt) + " Robux.";
+  });
+  document.getElementById("robuxWithdrawBtn").addEventListener("click", function(){
+    var nick = document.getElementById("robloxNick").value.trim();
+    if (!nick){ showToast("Вкажіть свій нік у Roblox"); document.getElementById("robloxNick").focus(); return; }
+    var amt = parseNum(document.getElementById("robuxWithdrawAmount").value);
+    if (amt < 30){ showToast("Мінімальна сума виводу — 30 Robux"); return; }
+    if (amt > wallet.balance){ showToast("Недостатньо коштів на балансі"); return; }
+    var gpPrice = gamepassPriceFor(amt);
+    showConfirm('Вивести ◆ ' + fmt(amt) + ' Robux на нік ' + nick + '? Адмін створить гейм-пас за ◆ ' + fmt(gpPrice) + ' Robux.', function(){
+      submitRobuxWithdraw(amt, gpPrice, nick);
+    });
+  });
+  function submitRobuxWithdraw(amount, gamepassPrice, nick){
+    wallet.robloxNick = nick;
+    if (localMode){ showToast("Вивід Robux доступний лише при підключенні до Firebase"); return; }
+    wallet.balance = r3(wallet.balance - amount);
+    persistWallet();
+    db.collection("inventory").add({
+      uid: uid, type: "robux", name: "Вивід Robux", icon: "💰", price: amount, gamepassPrice: gamepassPrice,
+      status: "requested", robloxNick: nick, createdAt: Date.now(), requestedAt: Date.now()
+    }).then(function(){
+      document.getElementById("robuxWithdrawAmount").value = "";
+      document.getElementById("gamepassHint").textContent = "Мінімум для виводу — 30 Robux.";
+      showToast("Заявку на вивід Robux подано");
+    }).catch(function(){
+      wallet.balance = r3(wallet.balance + amount); persistWallet();
+      showToast("Не вдалося подати заявку");
+    });
+  }
+
   function resolveRequest(id, status){
     if (localMode || !db) return;
+    if (status === "rejected"){
+      var req = pendingRequests.find(function(r){ return r.id === id; });
+      if (req && req.type === "robux"){
+        db.collection("wallets").doc(req.uid).get().then(function(snap){
+          var data = snap.exists ? (snap.data() || {}) : { balance: 0, robloxNick: "" };
+          var refunded = r3((data.balance || 0) + req.price);
+          return db.collection("wallets").doc(req.uid).set({ balance: refunded, robloxNick: data.robloxNick || "" });
+        }).catch(function(){});
+      }
+    }
     db.collection("inventory").doc(id).update({ status: status, decidedAt: Date.now() })
       .then(function(){ showToast(status === "done" ? "Позначено виданим" : "Заявку відхилено"); })
       .catch(function(){ showToast("Не вдалося оновити заявку"); });
@@ -1121,7 +1189,7 @@
       db.collection("sell_log").orderBy("at","desc").limit(50).onSnapshot(function(snap){
         adminSellLog = snap.docs.map(function(d){
           var v = d.data() || {};
-          return { id: d.id, uid: v.uid, name: v.name, price: v.price, icon: v.icon, status: v.status || "done",
+          return { id: d.id, uid: v.uid, name: v.name, price: v.price, icon: v.icon, status: v.status || "done", robloxNick: v.robloxNick || "",
             date: new Date(v.at || Date.now()).toLocaleDateString("uk-UA", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) };
         });
         if (isAdmin){ renderAdminSellLog(); renderStats(); }
