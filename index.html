@@ -316,7 +316,7 @@
           </div>
           <div class="row2" style="margin-top:8px;">
             <div style="flex:1;"><div class="price-label">Магазин</div><select class="shop-select" id="newBuyShop"></select></div>
-            <div><div class="price-label">Ціна</div><input class="price-input" id="newBuyPrice" type="number" step="0.001" min="0" placeholder="0"></div>
+            <div><div class="price-label">Ціна</div><input class="price-input" id="newBuyPrice" type="text" inputmode="decimal" placeholder="0"></div>
           </div>
           <div class="row2" style="margin-top:8px;">
             <div style="flex:1;"><div class="price-label">Кількість (порожньо = необмежено)</div><input class="price-input" id="newBuyStock" type="number" placeholder="∞" style="width:100%;"></div>
@@ -345,7 +345,7 @@
           </div>
           <div class="row2" style="margin-top:8px;">
             <div style="flex:1;"><div class="price-label">Магазин</div><select class="shop-select" id="newSellShop"></select></div>
-            <div><div class="price-label">Ціна</div><input class="price-input" id="newSellPrice" type="number" step="0.001" min="0" placeholder="0"></div>
+            <div><div class="price-label">Ціна</div><input class="price-input" id="newSellPrice" type="text" inputmode="decimal" placeholder="0"></div>
           </div>
           <div class="row2" style="margin-top:8px;">
             <div class="actions" style="margin-left:0; width:100%;"><button class="item-action" id="addSellBtn" style="width:100%;">Додати товар</button></div>
@@ -411,6 +411,7 @@
 
   function fmt(n){ return r3(n).toLocaleString("uk-UA", { minimumFractionDigits: 0, maximumFractionDigits: 3 }); }
   function r3(n){ return Math.round((n||0) * 1000) / 1000; }
+  function parseNum(v){ return parseFloat(String(v).replace(",", ".")) || 0; }
   var pendingConfirmCb = null;
   function showConfirm(message, onYes){
     document.getElementById("modalMsg").textContent = message;
@@ -645,7 +646,7 @@
           '</div>' +
           '<div class="row1"><input class="icon-input" maxlength="4"><input class="name-input"></div>' +
           '<div class="row2">' +
-            '<div><div class="price-label">Ціна</div><input class="price-input" type="number" step="0.001" min="0" value="' + item.price + '"></div>' +
+            '<div><div class="price-label">Ціна</div><input class="price-input" type="text" inputmode="decimal" value="' + item.price + '"></div>' +
             '<div class="actions"><button class="item-action">Зберегти</button><button class="item-action danger">Видалити</button></div>' +
           '</div>' + stockFieldHtml;
         fillShopSelect(row.querySelector(".item-shop-select"), item.shopId);
@@ -676,7 +677,7 @@
         btns[0].addEventListener("click", function(){
           var icon = rowIconData || iconInput.value.trim() || "🎁";
           var name = row.querySelector(".name-input").value.trim();
-          var price = parseFloat(row.querySelector(".price-input").value) || 0;
+          var price = parseNum(row.querySelector(".price-input").value);
           var shopId = row.querySelector(".item-shop-select").value;
           if (!name) { showToast("Вкажіть назву товару"); return; }
           var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: item.createdAt || Date.now() };
@@ -805,12 +806,12 @@
       row.className = "grant-row";
       row.innerHTML =
         '<div class="nick-line"><span></span><span class="bal"></span></div>' +
-        '<div class="grant-controls"><input type="number" step="0.001" min="0" placeholder="Сума"><button class="item-action" style="flex-shrink:0;">Видати</button></div>';
+        '<div class="grant-controls"><input type="text" inputmode="decimal" placeholder="Сума"><button class="item-action" style="flex-shrink:0;">Видати</button></div>';
       row.querySelector(".nick-line span").textContent = p.robloxNick;
       row.querySelector(".bal").textContent = "◆ " + fmt(p.balance || 0);
       var input = row.querySelector("input");
       row.querySelector("button").addEventListener("click", function(){
-        var amount = parseFloat(input.value);
+        var amount = parseNum(input.value);
         if (!amount || amount <= 0){ showToast("Вкажіть суму"); return; }
         showConfirm('Видати ' + fmt(amount) + ' Robux гравцю ' + p.robloxNick + '?', function(){ grantRobux(p.uid, amount, p.robloxNick); input.value = ""; });
       });
@@ -977,7 +978,7 @@
     var iconData = iconDataId ? document.getElementById(iconDataId).value : "";
     var icon = iconData || document.getElementById(iconId).value.trim() || "🎁";
     var name = document.getElementById(nameId).value.trim();
-    var price = parseFloat(document.getElementById(priceId).value) || 0;
+    var price = parseNum(document.getElementById(priceId).value);
     if (!name){ showToast("Вкажіть назву товару"); return; }
     var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: Date.now() };
     if (stockId){
