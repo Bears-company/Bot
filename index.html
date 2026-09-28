@@ -11,14 +11,14 @@
 <style>
   :root {
     --bg:#1A1611; --surface:#231D15; --surface2:#2E2618; --line:#3D3324;
-    --honey:#D9A24E; --honey-soft:#EFC77E; --forest:#8CA383; --ink:#F0E8D8; --ink-dim:#A79877; --danger:#BF7250; --robux:#5FB58A;
+    --honey:#DCA855; --honey-soft:#F0CC85; --forest:#8CA383; --ink:#F2EAD9; --ink-dim:#AB9C82; --danger:#C07958; --robux:#63BC91;
     box-sizing:border-box;
     padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
   }
   :root:not([data-theme="light"]) { color-scheme: dark; }
   :root[data-theme="light"] {
-    --bg:#FBF7EF; --surface:#FFFFFF; --surface2:#F4ECDB; --line:#E6D8BE;
-    --honey:#B8802E; --honey-soft:#D9A24E; --forest:#6F8965; --ink:#2B2317; --ink-dim:#8C7D63; --danger:#A85D3F; --robux:#3D8C64;
+    --bg:#F6F1E4; --surface:#FFFDF8; --surface2:#EEE5D0; --line:#E1D5B7;
+    --honey:#A9721F; --honey-soft:#C6902F; --forest:#4F7A61; --ink:#2B2318; --ink-dim:#8A7A5F; --danger:#A6512F; --robux:#2E8A5B;
   }
   html { scroll-padding-top: env(safe-area-inset-top,0px); height:100%; }
   * { box-sizing: border-box; }
@@ -39,7 +39,7 @@
   .shop-switcher::-webkit-scrollbar { display:none; }
   .shop-chip { flex-shrink:0; border:1px solid var(--line); background:var(--surface); color:var(--ink-dim);
     padding:8px 16px; border-radius:20px; font-size:0.82rem; font-weight:600; cursor:pointer; white-space:nowrap; transition:background 0.15s ease, color 0.15s ease; }
-  .shop-chip.active { background: linear-gradient(155deg, var(--honey-soft), var(--honey)); border-color:var(--honey); color:#241C10; box-shadow: 0 4px 12px -5px rgba(217,162,78,0.6); }
+  .shop-chip.active { background: linear-gradient(155deg, var(--honey-soft), var(--honey)); border-color:var(--honey); color:#241C10; box-shadow: 0 4px 12px -5px rgba(220,168,85,0.6); }
 
   .balance-card { margin:14px 20px 6px; padding:24px 22px 22px; border-radius:22px;
     background: linear-gradient(155deg, var(--surface2), var(--surface)); border:1px solid var(--line); position:relative; overflow:hidden;
@@ -49,6 +49,12 @@
   .balance-value { font-family:"Fraunces", serif; font-size:2.5rem; font-weight:600; margin-top:4px; display:flex; align-items:baseline; gap:8px; }
   .balance-value .robux-glyph { font-size:1.5rem; color:var(--robux); font-family:-apple-system,sans-serif; }
   .balance-value .unit { font-size:1.1rem; color:var(--honey-soft); font-weight:500; font-family:-apple-system,sans-serif; }
+  .balance-history-toggle { margin-top:12px; background:none; border:none; color:var(--ink-dim); font-size:0.76rem;
+    cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px; }
+  .balance-history { margin:6px 20px 6px; background:var(--surface); border:1px solid var(--line); border-radius:16px;
+    padding:6px 14px; max-height:220px; overflow-y:auto; }
+  .balance-history .history-row:last-child { border-bottom:none; }
+  .balance-history .amt.neg { color:var(--danger); }
 
   main { flex:1; padding: 4px 20px 92px; }
   .section-title { font-family:"Fraunces", serif; font-size:1.25rem; font-weight:600; margin: 22px 0 4px; }
@@ -65,10 +71,10 @@
   .item-meta { font-size:0.78rem; color:var(--robux); font-weight:600; margin-top:3px; }
   .item-action { border:none; border-radius:100px; padding:10px 18px; font-size:0.85rem; font-weight:700; cursor:pointer;
     background: linear-gradient(155deg, var(--honey-soft), var(--honey)); color:#241C10; white-space:nowrap;
-    box-shadow: 0 4px 10px -4px rgba(217,162,78,0.55); letter-spacing:0.1px; transition: transform 0.12s ease, box-shadow 0.12s ease; }
-  .item-action:active { transform: scale(0.95); box-shadow: 0 2px 6px -3px rgba(217,162,78,0.5); }
+    box-shadow: 0 4px 10px -4px rgba(220,168,85,0.55); letter-spacing:0.1px; transition: transform 0.12s ease, box-shadow 0.12s ease; }
+  .item-action:active { transform: scale(0.95); box-shadow: 0 2px 6px -3px rgba(220,168,85,0.5); }
   .item-action.secondary { background: rgba(140,163,131,0.16); border:1px solid rgba(140,163,131,0.4); color:var(--forest); box-shadow:none; }
-  .item-action.danger { background: rgba(191,114,80,0.14); border:1px solid rgba(191,114,80,0.4); color:var(--danger); box-shadow:none; }
+  .item-action.danger { background: rgba(192,121,88,0.14); border:1px solid rgba(192,121,88,0.4); color:var(--danger); box-shadow:none; }
   .item-action:disabled { opacity:0.4; cursor:not-allowed; box-shadow:none; }
 
   .empty { text-align:center; padding:40px 12px; color:var(--ink-dim); }
@@ -85,9 +91,9 @@
   .hint.low { color:var(--danger); }
 
   .badge { font-size:0.72rem; padding:3px 9px; border-radius:20px; font-weight:600; white-space:nowrap; }
-  .badge.pending { background:rgba(217,162,78,0.18); color:var(--honey-soft); }
+  .badge.pending { background:rgba(220,168,85,0.18); color:var(--honey-soft); }
   .badge.done { background:rgba(140,163,131,0.2); color:var(--forest); }
-  .badge.rejected { background:rgba(191,114,80,0.18); color:var(--danger); }
+  .badge.rejected { background:rgba(192,121,88,0.18); color:var(--danger); }
 
   .history-title { font-size:0.85rem; color:var(--ink-dim); margin:22px 0 8px; }
   .history-row { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 0; border-bottom:1px solid var(--line); font-size:0.87rem; }
@@ -134,11 +140,13 @@
   nav.tabbar { position:fixed; bottom:0; left:0; right:0; display:flex; justify-content:center;
     background: rgba(26,22,17,0.92); backdrop-filter: blur(10px); border-top:1px solid var(--line);
     padding-bottom: env(safe-area-inset-bottom,0px); }
-  :root[data-theme="light"] nav.tabbar { background: rgba(251,247,239,0.92); }
+  :root[data-theme="light"] nav.tabbar { background: rgba(246,241,228,0.92); }
   .tabbar-inner { max-width:480px; width:100%; display:flex; }
   .tab-btn { flex:1; background:none; border:none; padding:12px 4px 10px; display:flex; flex-direction:column;
     align-items:center; gap:4px; color:var(--ink-dim); font-size:0.68rem; cursor:pointer; position:relative; }
-  .tab-btn .icon { font-size:1.2rem; } .tab-btn.active { color:var(--honey-soft); }
+  .tab-btn .icon { font-size:1.2rem; position:relative; display:inline-block; } .tab-btn.active { color:var(--honey-soft); }
+  .tab-badge { position:absolute; top:-6px; right:-10px; min-width:16px; height:16px; padding:0 4px; border-radius:9px;
+    background:var(--danger); color:#fff; font-size:0.62rem; font-weight:800; line-height:16px; text-align:center; }
   .tab-btn.active::before { content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
     width:16px; height:3px; border-radius:3px; background:var(--honey); }
 
@@ -206,7 +214,9 @@
   <div class="balance-card">
     <div class="balance-label">Ваш баланс</div>
     <div class="balance-value"><span class="robux-glyph">◆</span><span id="balanceValue">0</span><span class="unit">Robux</span></div>
+    <button class="balance-history-toggle" id="balanceHistoryToggle">Історія балансу ▾</button>
   </div>
+  <div class="balance-history" id="balanceHistory" style="display:none;"></div>
   <div class="sync-note" id="syncNote"></div>
 
   <main>
@@ -372,8 +382,8 @@
     <div class="tabbar-inner">
       <button class="tab-btn active" data-tab="shop"><span class="icon">🛍️</span>Магазин</button>
       <button class="tab-btn" data-tab="sell"><span class="icon">🐾</span>Продаж</button>
-      <button class="tab-btn" data-tab="withdraw"><span class="icon">💸</span>Вивід</button>
-      <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display:none"><span class="icon">⚙️</span>Адмін</button>
+      <button class="tab-btn" data-tab="withdraw"><span class="icon">💸<span class="tab-badge" id="withdrawBadge" style="display:none;">0</span></span>Вивід</button>
+      <button class="tab-btn" data-tab="admin" id="adminTabBtn" style="display:none"><span class="icon">⚙️<span class="tab-badge" id="adminBadge" style="display:none;">0</span></span>Адмін</button>
     </div>
   </nav>
 
@@ -418,6 +428,7 @@
   var pendingRequests = [];    // admin view
   var allWithdrawHistory = []; // admin: full withdraw history for CSV export
   var mySellLog = [];
+  var myBalanceLog = [];
   var adminSellLog = [];
   var localMode = false;
 
@@ -547,6 +558,30 @@
       else { right.innerHTML = statusLabel(w.status === "rejected" ? "rejected" : "requested"); }
       row.appendChild(left); row.appendChild(right); box.appendChild(row);
     });
+  }
+
+  function renderBalanceHistory(){
+    var box = document.getElementById("balanceHistory");
+    if (myBalanceLog.length === 0){ box.innerHTML = '<div class="empty" style="padding:20px 8px;"><span class="glyph">📜</span>Історія поки порожня.</div>'; return; }
+    box.innerHTML = "";
+    myBalanceLog.forEach(function(l){
+      var row = document.createElement("div"); row.className = "history-row";
+      var left = document.createElement("span"); left.textContent = l.reason + " · " + l.date;
+      var right = document.createElement("span");
+      right.className = "amt" + (l.delta < 0 ? " neg" : "");
+      right.textContent = (l.delta >= 0 ? "+" : "") + fmt(l.delta);
+      row.appendChild(left); row.appendChild(right); box.appendChild(row);
+    });
+  }
+  document.getElementById("balanceHistoryToggle").addEventListener("click", function(){
+    var box = document.getElementById("balanceHistory");
+    var open = box.style.display !== "none";
+    box.style.display = open ? "none" : "block";
+    this.textContent = open ? "Історія балансу ▾" : "Історія балансу ▴";
+  });
+  function logBalanceChange(targetUid, delta, reason){
+    if (localMode || !db) return;
+    db.collection("balance_log").add({ uid: targetUid, delta: r3(delta), reason: reason, at: Date.now() }).catch(function(){});
   }
   function statusLabel(status){
     if (status === "requested") return '<span class="badge pending">Очікує</span>';
@@ -781,7 +816,7 @@
       });
     }).then(function(){
       return db.collection("sell_log").doc(sale.id).update({ status: "done", decidedAt: Date.now() });
-    }).then(function(){ showToast("Прийнято, нараховано " + fmt(sale.price) + " Robux"); })
+    }).then(function(){ showToast("Прийнято, нараховано " + fmt(sale.price) + " Robux"); logBalanceChange(sale.uid, sale.price, "Продано: " + sale.name); })
       .catch(function(){ showToast("Не вдалося обробити продаж"); });
   }
   function rejectSell(saleId){
@@ -844,7 +879,7 @@
       return db.collection("wallets").doc(targetUid).set({ balance: newBalance, robloxNick: data.robloxNick || nick }).then(function(){
         return db.collection("player_directory").doc(targetUid).set({ robloxNick: data.robloxNick || nick, balance: newBalance, updatedAt: Date.now() });
       });
-    }).then(function(){ showToast("Видано " + fmt(amount) + " Robux гравцю " + nick); })
+    }).then(function(){ showToast("Видано " + fmt(amount) + " Robux гравцю " + nick); logBalanceChange(targetUid, amount, "Видано адміном"); })
       .catch(function(){ showToast("Не вдалося видати Robux"); });
   }
 
@@ -888,8 +923,23 @@
   function renderAll(){
     renderShopSwitcher();
     renderBalance(); renderShop(); renderSell(); renderSellHistory();
-    renderInventory(); renderMyRequests();
+    renderInventory(); renderMyRequests(); renderBalanceHistory();
     if (isAdmin) renderAdmin();
+    updateBadges();
+  }
+  function updateBadges(){
+    var myPending = myInventory.filter(function(i){ return i.status === "requested"; }).length;
+    var wb = document.getElementById("withdrawBadge");
+    if (myPending > 0){ wb.textContent = myPending > 9 ? "9+" : myPending; wb.style.display = "inline-block"; }
+    else { wb.style.display = "none"; }
+
+    var ab = document.getElementById("adminBadge");
+    if (isAdmin){
+      var pendingSells = adminSellLog.filter(function(w){ return w.status === "pending"; }).length;
+      var totalPending = pendingRequests.length + pendingSells;
+      if (totalPending > 0){ ab.textContent = totalPending > 9 ? "9+" : totalPending; ab.style.display = "inline-block"; }
+      else { ab.style.display = "none"; }
+    } else { ab.style.display = "none"; }
   }
 
   // ---------- wallet persistence ----------
@@ -914,7 +964,7 @@
       renderAll(); saveLocal(); showToast("Куплено: " + item.name); return;
     }
     db.collection("inventory").add({ uid: uid, name: item.name, icon: item.icon, price: item.price, status: "owned", robloxNick: "", createdAt: Date.now() })
-      .then(function(){ showToast("Куплено: " + item.name); })
+      .then(function(){ showToast("Куплено: " + item.name); logBalanceChange(uid, -item.price, "Куплено: " + item.name); })
       .catch(function(){ wallet.balance = r3(wallet.balance + item.price); renderAll(); showToast("Не вдалося купити"); });
     if (typeof item.stock === "number"){
       db.collection("shop_buy").doc(item.id).update({ stock: Math.max(0, item.stock - 1) }).catch(function(){});
@@ -980,6 +1030,7 @@
       document.getElementById("robuxWithdrawAmount").value = "";
       document.getElementById("gamepassHint").textContent = "Мінімум для виводу — 30 Robux.";
       showToast("Заявку на вивід Robux подано");
+      logBalanceChange(uid, -amount, "Заявка на вивід Robux");
     }).catch(function(){
       wallet.balance = r3(wallet.balance + amount); persistWallet();
       showToast("Не вдалося подати заявку");
@@ -995,7 +1046,8 @@
           var data = snap.exists ? (snap.data() || {}) : { balance: 0, robloxNick: "" };
           var refunded = r3((data.balance || 0) + req.price);
           return db.collection("wallets").doc(req.uid).set({ balance: refunded, robloxNick: data.robloxNick || "" });
-        }).catch(function(){});
+        }).then(function(){ logBalanceChange(req.uid, req.price, "Повернення (відхилена заявка на вивід)"); })
+          .catch(function(){});
       }
     }
     db.collection("inventory").doc(id).update({ status: status, decidedAt: Date.now() })
@@ -1176,6 +1228,7 @@
       db.collection("inventory").where("status","==","requested").onSnapshot(function(snap){
         pendingRequests = snap.docs.map(function(d){ var v = d.data() || {}; v.id = d.id; return v; });
         if (isAdmin) renderWithdrawRequests();
+        updateBadges();
       }, function(){});
       db.collection("inventory").orderBy("createdAt","desc").limit(300).onSnapshot(function(snap){
         allWithdrawHistory = snap.docs.map(function(d){ var v = d.data() || {}; v.id = d.id; return v; })
@@ -1193,6 +1246,7 @@
             date: new Date(v.at || Date.now()).toLocaleDateString("uk-UA", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) };
         });
         if (isAdmin){ renderAdminSellLog(); renderStats(); }
+        updateBadges();
       }, function(){});
     }
 
@@ -1234,6 +1288,14 @@
           date: new Date(v.at || Date.now()).toLocaleDateString("uk-UA", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) };
       });
       renderSellHistory();
+    }, function(){});
+
+    db.collection("balance_log").where("uid","==",uid).orderBy("at","desc").limit(30).onSnapshot(function(snap){
+      myBalanceLog = snap.docs.map(function(d){
+        var v = d.data() || {};
+        return { delta: v.delta || 0, reason: v.reason || "", date: new Date(v.at || Date.now()).toLocaleDateString("uk-UA", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) };
+      });
+      renderBalanceHistory();
     }, function(){});
   }
 
