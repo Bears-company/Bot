@@ -22,9 +22,12 @@
   }
   html { scroll-padding-top: env(safe-area-inset-top,0px); height:100%; }
   * { box-sizing: border-box; }
-  body { margin:0; height:100%; background: var(--bg); color: var(--ink);
+  body { margin:0; height:100%; background: var(--bg); color: var(--ink); overflow-x:hidden;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing:antialiased; }
-  .app { max-width: 480px; margin: 0 auto; min-height: 100%; display:flex; flex-direction:column; }
+  .app { max-width: 480px; margin: 0 auto; min-height: 100%; display:flex; flex-direction:column; overflow-x:hidden; width:100%; }
+  .row1, .row2, .icon-picker-row, .grant-controls, .nick-line, .quick-amounts { min-width:0; }
+  .row1 > *, .row2 > *, .icon-picker-row > *, .grant-controls > * { min-width:0; }
+  select, input { min-width:0; max-width:100%; }
   header.top { padding: 18px 20px 14px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
   .brand { display:flex; align-items:center; gap:10px; }
   .brand .mark { width:34px; height:34px; border-radius:10px; background: linear-gradient(160deg, var(--honey-soft), var(--honey)); display:flex; align-items:center; justify-content:center; font-size:18px; }
@@ -167,6 +170,11 @@
   .search-input:focus { outline:2px solid var(--honey); outline-offset:1px; }
   .search-input::placeholder { color:var(--ink-dim); }
   .stats-row { display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin-bottom:22px; }
+  .stats-row.cols2 { grid-template-columns: repeat(2, 1fr); margin-bottom:12px; }
+  .stat-card .num.live { color: var(--robux); }
+  .live-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--robux); margin-right:5px;
+    box-shadow:0 0 0 0 rgba(95,181,142,0.6); animation: live-pulse 1.6s infinite; }
+  @keyframes live-pulse { 0%{ box-shadow:0 0 0 0 rgba(95,181,142,0.5);} 70%{ box-shadow:0 0 0 7px rgba(95,181,142,0);} 100%{ box-shadow:0 0 0 0 rgba(95,181,142,0);} }
   .stat-card { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:12px 10px; text-align:center; }
   .stat-card .num { font-family:"Fraunces", serif; font-size:1.35rem; font-weight:600; color:var(--honey-soft); }
   .stat-card .lbl { font-size:0.68rem; color:var(--ink-dim); margin-top:2px; }
@@ -292,6 +300,7 @@
       <div class="section-title">Адмін-панель</div>
       <div class="section-sub">Каталоги товарів редагуються окремо для кожного магазину зверху</div>
 
+      <div class="stats-row cols2" id="presenceStatsRow"></div>
       <div class="stats-row" id="statsRow"></div>
 
       <div class="admin-block">
@@ -456,6 +465,7 @@
   var wallet = { balance: 0, robloxNick: "" };
   var myInventory = [];        // {id, name, icon, price, status, robloxNick}
   var pendingRequests = [];    // admin view
+  var allPresence = [];        // admin view: who has opened the app and when they were last seen
   var allWithdrawHistory = []; // admin: full withdraw history for CSV export
   var mySellLog = [];
   var myBalanceLog = [];
@@ -914,6 +924,31 @@
       .catch(function(){ showToast("Не вдалося відхилити"); });
   }
 
+  var ONLINE_THRESHOLD_MS = 90000; // consider "online" if a heartbeat was seen in the last 90s
+  function renderPresenceStats(){
+    var box = document.getElementById("presenceStatsRow");
+    if (!box) return;
+    var now = Date.now();
+    var onlineCount = allPresence.filter(function(p){ return (now - (p.lastSeen || 0)) < ONLINE_THRESHOLD_MS; }).length;
+    var stats = [
+      { num: onlineCount, lbl: "Онлайн зараз", live: true },
+      { num: allPresence.length, lbl: "Всього заходило" }
+    ];
+    box.innerHTML = "";
+    stats.forEach(function(s){
+      var card = document.createElement("div");
+      card.className = "stat-card";
+      card.innerHTML = '<div class="num' + (s.live ? ' live' : '') + '">' + (s.live ? '<span class="live-dot"></span>' : '') + '</div><div class="lbl"></div>';
+      card.querySelector(".num").appendChild(document.createTextNode(s.num));
+      card.querySelector(".lbl").textContent = s.lbl;
+      box.appendChild(card);
+    });
+  }
+  function touchPresence(){
+    if (localMode || !db || !uid) return;
+    db.collection("presence").doc(uid).set({ lastSeen: Date.now(), robloxNick: wallet.robloxNick || "", tgUsername: tgUsername }, { merge: true }).catch(function(){});
+  }
+
   function renderStats(){
     var box = document.getElementById("statsRow");
     var pendingSellsCount = adminSellLog.filter(function(w){ return w.status === "pending"; }).length;
@@ -998,6 +1033,7 @@
   function renderAdmin(){
     document.getElementById("adminBuyTitle").textContent = "🛍️ Купівля — усі магазини";
     document.getElementById("adminSellTitle").textContent = "🐾 Продаж — усі магазини";
+    renderPresenceStats();
     renderStats();
     renderAdminShops();
     renderAdminCatalog("adminBuyList", allBuyItems, "shop_buy");
@@ -1352,6 +1388,8 @@
       db = firebase.firestore();
     } catch(e){ enterLocalMode("Не вдалося підключити Firebase."); return; }
     document.getElementById("syncNote").textContent = "";
+    touchPresence();
+    setInterval(touchPresence, 25000);
 
     if (isAdmin){
       document.getElementById("adminPill").style.display = "inline-block";
@@ -1371,6 +1409,11 @@
           .sort(function(a,b){ return a.robloxNick.localeCompare(b.robloxNick, "uk"); });
         if (isAdmin) renderGrantList();
       }, function(){});
+      db.collection("presence").onSnapshot(function(snap){
+        allPresence = snap.docs.map(function(d){ var v = d.data() || {}; return { uid: d.id, lastSeen: v.lastSeen || 0, robloxNick: v.robloxNick || "", tgUsername: v.tgUsername || "" }; });
+        if (isAdmin) renderPresenceStats();
+      }, function(){});
+      setInterval(function(){ if (isAdmin) renderPresenceStats(); }, 15000);
       db.collection("sell_log").orderBy("at","desc").limit(50).onSnapshot(function(snap){
         adminSellLog = snap.docs.map(function(d){
           var v = d.data() || {};
