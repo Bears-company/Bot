@@ -189,14 +189,18 @@
   .modal-actions { display:flex; gap:10px; }
   .modal-actions .item-action { flex:1; text-align:center; }
 
-  .new-badge { font-size:0.62rem; font-weight:800; letter-spacing:0.4px; padding:2px 7px; border-radius:8px;
-    background:var(--robux); color:#0F1A14; margin-left:6px; vertical-align:middle; }
-  .item-badge { font-size:0.62rem; font-weight:800; letter-spacing:0.4px; padding:2px 7px; border-radius:8px;
-    margin-left:6px; vertical-align:middle; }
-  .item-badge.hot { background:var(--danger); color:#fff; }
-  .item-badge.top { background:var(--honey); color:#241C10; }
-  .item-badge.sale { background:#C565B0; color:#fff; }
-  .item-badge.limited { background:var(--ink-dim); color:var(--surface); }
+  .item-badges-row { display:flex; flex-wrap:wrap; gap:4px; margin:3px 0 2px; }
+  .item-badge { font-size:0.62rem; font-weight:800; letter-spacing:0.3px; padding:2px 7px; border-radius:8px; color:#fff; }
+  .badge-chip-picker { display:flex; flex-wrap:wrap; gap:6px; margin-top:4px; }
+  .badge-chip-toggle { font-size:0.74rem; font-weight:700; padding:6px 11px; border-radius:20px; cursor:pointer;
+    border:1px solid var(--line); background:var(--surface2); color:var(--ink-dim); }
+  .badge-chip-toggle.active { color:#fff; border-color:transparent; }
+  .badge-admin-row { display:flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line);
+    border-radius:14px; padding:10px; margin-bottom:8px; }
+  .badge-admin-row input[type="text"] { flex:1; background:var(--surface2); border:1px solid var(--line); border-radius:10px; padding:8px 10px; color:var(--ink); min-width:0; }
+  .badge-admin-row select, #newBadgeColor { width:auto; flex-shrink:0; background:var(--surface2); color:var(--ink);
+    border:1px solid var(--line); border-radius:10px; padding:8px 8px; font-size:0.82rem; }
+  .badge-swatch { width:18px; height:18px; border-radius:6px; flex-shrink:0; }
   .stock-note { font-size:0.72rem; color:var(--ink-dim); margin-top:1px; }
   .stock-note.low { color:var(--danger); font-weight:600; }
 
@@ -280,6 +284,15 @@
         <div class="hint">Вкажіть свій нік перед подачею заявки — він збережеться для наступних разів.</div>
       </div>
 
+      <div class="history-title">🔗 Запросіть друга</div>
+      <div class="withdraw-box">
+        <div class="hint" id="referralRewardNote" style="margin-top:0;">За кожного друга, який зайде за вашим посиланням і вкаже свій нік, ви отримаєте бонус.</div>
+        <div class="field" style="margin:10px 0 0;">
+          <input type="text" id="referralLinkInput" readonly style="font-size:0.8rem;">
+        </div>
+        <button class="item-action secondary" id="copyReferralBtn" style="width:100%; margin-top:10px;">Скопіювати посилання</button>
+      </div>
+
       <div class="history-title">💰 Вивід Robux (від 30 шт)</div>
       <div class="withdraw-box">
         <div class="field" style="margin-bottom:10px;">
@@ -313,6 +326,33 @@
             <input class="name-input" id="newShopName" placeholder="Назва магазину">
             <button class="item-action" id="addShopBtn">Додати</button>
           </div>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">🏷️ Відмітки товарів</div>
+        <div class="admin-block-sub">Власні префікси (Топ, Хіт тощо) — можна обирати декілька на товар</div>
+        <div id="adminBadgesList"></div>
+        <div class="admin-add-box">
+          <label>Нова відмітка</label>
+          <div class="row1">
+            <input type="text" id="newBadgeLabel" placeholder="наприклад, 💎 Топ">
+            <select id="newBadgeColor" style="width:120px; flex-shrink:0;"></select>
+          </div>
+          <button class="item-action" id="addBadgeBtn" style="width:100%; margin-top:8px;">Додати відмітку</button>
+        </div>
+      </div>
+
+      <div class="admin-block">
+        <div class="admin-block-title">🔗 Реферальна система</div>
+        <div class="admin-block-sub">Скільки Robux нараховувати за кожного запрошеного друга</div>
+        <div class="withdraw-box">
+          <div class="field" style="margin-bottom:10px;">
+            <label for="referralRewardInput">Robux за реферала</label>
+            <input type="text" inputmode="decimal" id="referralRewardInput" placeholder="0">
+          </div>
+          <button class="item-action" id="saveReferralBtn" style="width:100%;">Зберегти</button>
+          <div class="hint" id="referralStatsHint"></div>
         </div>
       </div>
 
@@ -366,7 +406,7 @@
             <div style="flex:1;"><div class="price-label">Кількість (порожньо = необмежено)</div><input class="price-input" id="newBuyStock" type="number" placeholder="∞" style="width:100%;"></div>
           </div>
           <div class="row2" style="margin-top:8px;">
-            <div style="flex:1;"><div class="price-label">Відмітка</div><select class="shop-select" id="newBuyBadge"></select></div>
+            <div style="flex:1;"><div class="price-label">Відмітки</div><div class="badge-chip-picker" id="newBuyBadgePicker"></div></div>
           </div>
           <div class="row2" style="margin-top:8px;">
             <div class="actions" style="margin-left:0; width:100%;"><button class="item-action" id="addBuyBtn" style="width:100%;">Додати товар</button></div>
@@ -395,7 +435,7 @@
             <div><div class="price-label">Ціна</div><input class="price-input" id="newSellPrice" type="text" inputmode="decimal" placeholder="0"></div>
           </div>
           <div class="row2" style="margin-top:8px;">
-            <div style="flex:1;"><div class="price-label">Відмітка</div><select class="shop-select" id="newSellBadge"></select></div>
+            <div style="flex:1;"><div class="price-label">Відмітки</div><div class="badge-chip-picker" id="newSellBadgePicker"></div></div>
           </div>
           <div class="row2" style="margin-top:8px;">
             <div class="actions" style="margin-left:0; width:100%;"><button class="item-action" id="addSellBtn" style="width:100%;">Додати товар</button></div>
@@ -453,6 +493,9 @@
   // Telegram user IDs (numbers) who should have admin access. Add your own Telegram ID here.
   // Get your ID by messaging @userinfobot on Telegram.
   var ADMIN_TELEGRAM_IDS = [ 2067230442 ];
+  // Юзернейм вашого бота БЕЗ символу @ (наприклад "bears_company_bot").
+  // Потрібен для побудови реферальних посилань.
+  var BOT_USERNAME = "BeaC_bot";
 </script>
 <script>
 (function(){
@@ -466,6 +509,9 @@
   var myInventory = [];        // {id, name, icon, price, status, robloxNick}
   var pendingRequests = [];    // admin view
   var allPresence = [];        // admin view: who has opened the app and when they were last seen
+  var referralReward = 0;
+  var referralCount = 0;       // admin view: how many referrals have been credited
+  var startParam = "";         // Telegram start_param, captured at boot if opened via a referral link
   var allWithdrawHistory = []; // admin: full withdraw history for CSV export
   var mySellLog = [];
   var myBalanceLog = [];
@@ -544,7 +590,6 @@
     if (icon && icon.indexOf("data:image") === 0) return '<img src="' + icon + '" alt="">';
     return icon || "🎁";
   }
-  function isNew(item){ return (Date.now() - (item.createdAt || 0)) < (3*24*3600*1000) && item.createdAt; }
 
   var qtyState = {}; // itemId -> chosen quantity (persists while browsing the list)
   function renderCatalogList(container, items, actionLabel, actionClass, onAction, disableCheck, isBuyList){
@@ -567,6 +612,7 @@
       row.innerHTML =
         '<div class="item-icon">' + iconHtml(item.icon) + '</div>' +
         '<div class="item-body"><div class="item-name"></div>' +
+        '<div class="item-badges-row"></div>' +
         '<div class="item-meta" data-price></div>' + stockHtml + '</div>' +
         '<div class="item-card-actions">' +
           '<div class="qty-stepper"><button type="button" class="qty-minus">−</button><span class="qty-val"></span><button type="button" class="qty-plus">+</button></div>' +
@@ -574,8 +620,9 @@
         '</div>';
       var nameEl = row.querySelector(".item-name");
       nameEl.textContent = item.name;
-      if (item.badge){ nameEl.insertAdjacentHTML("beforeend", badgeChipHtml(item.badge)); }
-      if (isNew(item)){ var b = document.createElement("span"); b.className = "new-badge"; b.textContent = "NEW"; nameEl.appendChild(b); }
+      var badgesRowEl = row.querySelector(".item-badges-row");
+      if (item.badges && item.badges.length){ badgesRowEl.innerHTML = item.badges.map(badgeChipHtml).join(""); }
+      else { badgesRowEl.style.display = "none"; }
       var priceEl = row.querySelector("[data-price]");
       var qtyValEl = row.querySelector(".qty-val");
       var minusBtn = row.querySelector(".qty-minus");
@@ -731,19 +778,21 @@
     });
   }
 
-  var BADGE_OPTIONS = [
-    { value: "", label: "Без відмітки" },
-    { value: "hot", label: "🔥 Хіт" },
-    { value: "top", label: "💎 Топ" },
-    { value: "sale", label: "🎉 Акція" },
-    { value: "limited", label: "⏳ Обмежена партія" }
+  var badgeDefs = []; // {id, label, color} — defined by admin, loaded from Firestore
+  var PRESET_COLORS = [
+    { name: "Золотий", hex: "#DCA855" },
+    { name: "Червоний", hex: "#C07958" },
+    { name: "Рожевий", hex: "#C565B0" },
+    { name: "Зелений", hex: "#63BC91" },
+    { name: "Синій", hex: "#5E8FBF" },
+    { name: "Сірий", hex: "#8C7D63" }
   ];
-  function fillBadgeSelect(selectEl, selectedValue){
+  function fillColorSelect(selectEl, selectedHex){
     selectEl.innerHTML = "";
-    BADGE_OPTIONS.forEach(function(b){
+    PRESET_COLORS.forEach(function(c){
       var opt = document.createElement("option");
-      opt.value = b.value; opt.textContent = b.label;
-      if (b.value === (selectedValue || "")) opt.selected = true;
+      opt.value = c.hex; opt.textContent = c.name;
+      if (c.hex === (selectedHex || PRESET_COLORS[0].hex)) opt.selected = true;
       selectEl.appendChild(opt);
     });
   }
@@ -751,10 +800,31 @@
     var uname = tgUser ? "@" + tgUser : "без юзернейму";
     return '<div class="tg-line">' + uname + ' • ID: ' + (tgUid || "—") + '</div>';
   }
-  function badgeChipHtml(value){
-    var b = BADGE_OPTIONS.find(function(o){ return o.value === value; });
-    if (!b || !b.value) return "";
-    return '<span class="item-badge ' + b.value + '">' + b.label + '</span>';
+  function badgeChipHtml(id){
+    var b = badgeDefs.find(function(o){ return o.id === id; });
+    if (!b) return "";
+    return '<span class="item-badge" style="background:' + b.color + '">' + b.label + '</span>';
+  }
+  // Renders a tappable multi-select chip picker into containerEl; selection is tracked
+  // on containerEl._selected (array of badge ids) and read back when saving.
+  function renderBadgeChipPicker(containerEl, selectedIds){
+    containerEl._selected = (selectedIds || []).slice();
+    containerEl.innerHTML = "";
+    if (badgeDefs.length === 0){ containerEl.innerHTML = '<span style="font-size:0.76rem;color:var(--ink-dim);">Відміток ще немає — створіть нижче в адмінці</span>'; return; }
+    badgeDefs.forEach(function(b){
+      var chip = document.createElement("button");
+      chip.type = "button";
+      var active = containerEl._selected.indexOf(b.id) !== -1;
+      chip.className = "badge-chip-toggle" + (active ? " active" : "");
+      chip.textContent = b.label;
+      if (active) chip.style.background = b.color;
+      chip.addEventListener("click", function(){
+        var idx = containerEl._selected.indexOf(b.id);
+        if (idx === -1) containerEl._selected.push(b.id); else containerEl._selected.splice(idx, 1);
+        renderBadgeChipPicker(containerEl, containerEl._selected);
+      });
+      containerEl.appendChild(chip);
+    });
   }
 
   function renderAdminCatalog(containerId, allItems, collectionName){
@@ -792,9 +862,9 @@
             '<div><div class="price-label">Ціна</div><input class="price-input" type="text" inputmode="decimal" value="' + item.price + '"></div>' +
             '<div class="actions"><button class="item-action">Зберегти</button><button class="item-action danger">Видалити</button></div>' +
           '</div>' + stockFieldHtml +
-          '<div style="margin-top:8px;"><div class="price-label">Відмітка</div><select class="shop-select badge-field" style="width:100%;"></select></div>';
+          '<div style="margin-top:8px;"><div class="price-label">Відмітки</div><div class="badge-chip-picker badge-field"></div></div>';
         fillShopSelect(row.querySelector(".item-shop-select"), item.shopId);
-        fillBadgeSelect(row.querySelector(".badge-field"), item.badge);
+        renderBadgeChipPicker(row.querySelector(".badge-field"), item.badges);
         var preview = row.querySelector(".icon-preview");
         var iconInput = row.querySelector(".icon-input");
         var rowIconData = isImg ? item.icon : "";
@@ -825,7 +895,8 @@
           var price = parseNum(row.querySelector(".price-input").value);
           var shopId = row.querySelector(".item-shop-select").value;
           if (!name) { showToast("Вкажіть назву товару"); return; }
-          var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: item.createdAt || Date.now(), badge: row.querySelector(".badge-field").value };
+          var badgeField = row.querySelector(".badge-field");
+          var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: item.createdAt || Date.now(), badges: (badgeField._selected || []).slice() };
           var stockField = row.querySelector(".stock-field");
           if (stockField) payload.stock = stockField.value === "" ? null : Math.max(0, parseInt(stockField.value, 10) || 0);
           saveItem(collectionName, item.id, payload);
@@ -1040,8 +1111,9 @@
     renderAdminCatalog("adminSellList", allSellItems, "shop_sell");
     fillShopSelect(document.getElementById("newBuyShop"), document.getElementById("newBuyShop").value || currentShopId);
     fillShopSelect(document.getElementById("newSellShop"), document.getElementById("newSellShop").value || currentShopId);
-    if (!document.getElementById("newBuyBadge").options.length) fillBadgeSelect(document.getElementById("newBuyBadge"), "");
-    if (!document.getElementById("newSellBadge").options.length) fillBadgeSelect(document.getElementById("newSellBadge"), "");
+    renderBadgeChipPicker(document.getElementById("newBuyBadgePicker"), document.getElementById("newBuyBadgePicker")._selected);
+    renderBadgeChipPicker(document.getElementById("newSellBadgePicker"), document.getElementById("newSellBadgePicker")._selected);
+    renderAdminBadges();
     renderWithdrawRequests();
     renderGrantList();
     renderAdminSellLog();
@@ -1081,10 +1153,45 @@
     wallet.robloxNick = nick;
     document.getElementById("robloxNick").value = nick;
     persistWallet();
+    processReferralIfAny();
     document.getElementById("nickGate").classList.remove("show");
     renderAll();
     showToast("Нік збережено: " + nick);
   });
+
+  function setupReferralLink(){
+    var input = document.getElementById("referralLinkInput");
+    if (!BOT_USERNAME){ input.value = "Посилання ще не налаштоване адміном"; return; }
+    input.value = "https://t.me/" + BOT_USERNAME + "?startapp=" + uid;
+  }
+  document.getElementById("copyReferralBtn").addEventListener("click", function(){
+    var input = document.getElementById("referralLinkInput");
+    if (!input.value || !BOT_USERNAME){ showToast("Посилання ще не налаштоване"); return; }
+    input.select(); input.setSelectionRange(0, 99999);
+    try { navigator.clipboard.writeText(input.value); showToast("Посилання скопійовано"); }
+    catch(e){ document.execCommand("copy"); showToast("Посилання скопійовано"); }
+  });
+
+  function processReferralIfAny(){
+    if (localMode || !db || !startParam) return;
+    if (startParam === uid) return; // no self-referrals
+    db.collection("referrals").doc(uid).get().then(function(snap){
+      if (snap.exists) return; // already credited once, never again
+      var referrerUid = startParam;
+      db.collection("wallets").doc(referrerUid).get().then(function(rsnap){
+        if (!rsnap.exists) return; // referrer doesn't exist, ignore
+        var rdata = rsnap.data() || {};
+        var reward = referralReward || 0;
+        if (reward <= 0) return;
+        var newBalance = r3((rdata.balance || 0) + reward);
+        db.collection("wallets").doc(referrerUid).set({ balance: newBalance, robloxNick: rdata.robloxNick || "", tgUsername: rdata.tgUsername || "" })
+          .then(function(){
+            logBalanceChange(referrerUid, reward, "Реферал: запросив гравця");
+            return db.collection("referrals").doc(uid).set({ referrerUid: referrerUid, referredUid: uid, reward: reward, at: Date.now() });
+          }).catch(function(){});
+      }).catch(function(){});
+    }).catch(function(){});
+  }
 
   function persistWallet(){
     if (localMode){ saveLocal(); return Promise.resolve(); }
@@ -1244,6 +1351,60 @@
     }).catch(function(){ showToast("Не вдалося додати магазин"); });
   }
 
+  // ---------- admin: badge definitions ----------
+  function renderAdminBadges(){
+    var list = document.getElementById("adminBadgesList");
+    list.innerHTML = "";
+    if (badgeDefs.length === 0){ list.innerHTML = '<div class="empty"><span class="glyph">🏷️</span>Відміток ще немає. Додайте першу нижче.</div>'; return; }
+    badgeDefs.forEach(function(b){
+      var row = document.createElement("div");
+      row.className = "badge-admin-row";
+      row.innerHTML = '<span class="badge-swatch"></span><input type="text" value=""><select></select>' +
+        '<button class="item-action" style="flex-shrink:0;">💾</button><button class="item-action danger" style="flex-shrink:0;">✕</button>';
+      row.querySelector(".badge-swatch").style.background = b.color;
+      row.querySelector('input[type="text"]').value = b.label;
+      fillColorSelect(row.querySelector("select"), b.color);
+      var btns = row.querySelectorAll(".item-action");
+      btns[0].addEventListener("click", function(){
+        var label = row.querySelector('input[type="text"]').value.trim();
+        var color = row.querySelector("select").value;
+        if (!label){ showToast("Вкажіть назву відмітки"); return; }
+        saveBadge(b.id, label, color);
+      });
+      btns[1].addEventListener("click", function(){ deleteBadge(b.id); });
+      list.appendChild(row);
+    });
+  }
+  function saveBadge(id, label, color){
+    if (localMode || !db) return;
+    db.collection("badges").doc(id).set({ label: label, color: color }).then(function(){ showToast("Відмітку збережено"); })
+      .catch(function(){ showToast("Не вдалося зберегти"); });
+  }
+  function deleteBadge(id){
+    if (localMode || !db) return;
+    db.collection("badges").doc(id).delete().then(function(){ showToast("Відмітку видалено"); })
+      .catch(function(){ showToast("Не вдалося видалити"); });
+  }
+  document.getElementById("addBadgeBtn").addEventListener("click", function(){
+    if (localMode || !db){ showToast("Немає зʼєднання з базою даних"); return; }
+    var label = document.getElementById("newBadgeLabel").value.trim();
+    var color = document.getElementById("newBadgeColor").value;
+    if (!label){ showToast("Вкажіть назву відмітки"); return; }
+    db.collection("badges").add({ label: label, color: color }).then(function(){
+      document.getElementById("newBadgeLabel").value = "";
+      showToast("Відмітку додано: " + label);
+    }).catch(function(){ showToast("Не вдалося додати відмітку"); });
+  });
+  fillColorSelect(document.getElementById("newBadgeColor"), "");
+
+  document.getElementById("saveReferralBtn").addEventListener("click", function(){
+    if (localMode || !db){ showToast("Немає зʼєднання з базою даних"); return; }
+    var reward = parseNum(document.getElementById("referralRewardInput").value);
+    db.collection("settings").doc("referral").set({ reward: reward }).then(function(){
+      showToast("Збережено: " + fmt(reward) + " Robux за реферала");
+    }).catch(function(){ showToast("Не вдалося зберегти"); });
+  });
+
   // ---------- admin: catalog editing ----------
   function saveItem(collectionName, id, data){
     if (localMode || !db){ showToast("Немає зʼєднання з базою даних"); return; }
@@ -1255,7 +1416,7 @@
     db.collection(collectionName).doc(id).delete().then(function(){ showToast("Товар видалено"); })
       .catch(function(){ showToast("Не вдалося видалити"); });
   }
-  function addNewItem(collectionName, iconId, nameId, priceId, shopSelectId, iconDataId, stockId, badgeId){
+  function addNewItem(collectionName, iconId, nameId, priceId, shopSelectId, iconDataId, stockId, badgePickerId){
     if (localMode || !db){ showToast("Немає зʼєднання з базою даних"); return; }
     var shopId = document.getElementById(shopSelectId).value;
     if (!shopId){ showToast("Спочатку створіть магазин"); return; }
@@ -1264,7 +1425,8 @@
     var name = document.getElementById(nameId).value.trim();
     var price = parseNum(document.getElementById(priceId).value);
     if (!name){ showToast("Вкажіть назву товару"); return; }
-    var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: Date.now(), badge: badgeId ? document.getElementById(badgeId).value : "" };
+    var badgePicker = badgePickerId ? document.getElementById(badgePickerId) : null;
+    var payload = { name: name, icon: icon, price: price, shopId: shopId, createdAt: Date.now(), badges: (badgePicker && badgePicker._selected) ? badgePicker._selected.slice() : [] };
     if (stockId){
       var stockVal = document.getElementById(stockId).value;
       payload.stock = stockVal === "" ? null : Math.max(0, parseInt(stockVal, 10) || 0);
@@ -1273,7 +1435,7 @@
       document.getElementById(iconId).value = ""; document.getElementById(nameId).value = ""; document.getElementById(priceId).value = "";
       if (iconDataId){ document.getElementById(iconDataId).value = ""; resetIconPreview(iconDataId); }
       if (stockId) document.getElementById(stockId).value = "";
-      if (badgeId) document.getElementById(badgeId).value = "";
+      if (badgePicker) renderBadgeChipPicker(badgePicker, []);
       showToast("Товар додано: " + name);
     }).catch(function(){ showToast("Не вдалося додати товар"); });
   }
@@ -1345,8 +1507,8 @@
     try { saved = localStorage.getItem("bears_company_theme"); } catch(e){}
     if (saved === "light" || saved === "dark") applyTheme(saved);
   })();
-  document.getElementById("addBuyBtn").addEventListener("click", function(){ addNewItem("shop_buy", "newBuyIcon", "newBuyName", "newBuyPrice", "newBuyShop", "newBuyIconData", "newBuyStock", "newBuyBadge"); });
-  document.getElementById("addSellBtn").addEventListener("click", function(){ addNewItem("shop_sell", "newSellIcon", "newSellName", "newSellPrice", "newSellShop", "newSellIconData", null, "newSellBadge"); });
+  document.getElementById("addBuyBtn").addEventListener("click", function(){ addNewItem("shop_buy", "newBuyIcon", "newBuyName", "newBuyPrice", "newBuyShop", "newBuyIconData", "newBuyStock", "newBuyBadgePicker"); });
+  document.getElementById("addSellBtn").addEventListener("click", function(){ addNewItem("shop_sell", "newSellIcon", "newSellName", "newSellPrice", "newSellShop", "newSellIconData", null, "newSellBadgePicker"); });
   document.getElementById("addShopBtn").addEventListener("click", addNewShop);
 
   // ---------- boot ----------
@@ -1377,7 +1539,9 @@
     }
     uid = String(tgUser.id);
     tgUsername = tgUser.username || "";
+    startParam = (tg.initDataUnsafe.start_param || "").trim();
     isAdmin = ADMIN_TELEGRAM_IDS.map(String).indexOf(uid) !== -1;
+    setupReferralLink();
 
     if (typeof firebase === "undefined" || !firebaseConfig || !firebaseConfig.apiKey){
       enterLocalMode("Firebase не підключено: дані зберігаються лише у цьому браузері.");
@@ -1414,6 +1578,11 @@
         if (isAdmin) renderPresenceStats();
       }, function(){});
       setInterval(function(){ if (isAdmin) renderPresenceStats(); }, 15000);
+      db.collection("referrals").onSnapshot(function(snap){
+        referralCount = snap.size;
+        var hint = document.getElementById("referralStatsHint");
+        if (hint) hint.textContent = "Запрошено й нараховано: " + referralCount + (referralCount === 1 ? " гравець" : " гравців");
+      }, function(){});
       db.collection("sell_log").orderBy("at","desc").limit(50).onSnapshot(function(snap){
         adminSellLog = snap.docs.map(function(d){
           var v = d.data() || {};
@@ -1425,6 +1594,23 @@
       }, function(){});
     }
 
+    db.collection("badges").onSnapshot(function(snap){
+      badgeDefs = snap.docs.map(function(d){ var v = d.data() || {}; return { id: d.id, label: v.label || "", color: v.color || "#8C7D63" }; });
+      renderAll();
+    }, function(){});
+
+    db.collection("settings").doc("referral").onSnapshot(function(snap){
+      referralReward = snap.exists ? (snap.data().reward || 0) : 0;
+      var note = document.getElementById("referralRewardNote");
+      if (note){
+        note.textContent = referralReward > 0
+          ? "За кожного друга, який зайде за вашим посиланням і вкаже свій нік, ви отримаєте ◆ " + fmt(referralReward) + " Robux."
+          : "За кожного друга, який зайде за вашим посиланням і вкаже свій нік, ви отримаєте бонус.";
+      }
+      var input = document.getElementById("referralRewardInput");
+      if (input && document.activeElement !== input) input.value = referralReward || "";
+    }, function(){});
+
     db.collection("shops").onSnapshot(function(snap){
       shops = snap.docs.map(function(d){ var v = d.data() || {}; return { id: d.id, name: v.name || "Магазин" }; });
       if (!currentShopId || !shops.some(function(s){ return s.id === currentShopId; })){
@@ -1434,12 +1620,12 @@
     }, function(){});
 
     db.collection("shop_buy").onSnapshot(function(snap){
-      allBuyItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId, createdAt:v.createdAt||0, stock: typeof v.stock === "number" ? v.stock : null, badge: v.badge || "" }; });
+      allBuyItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId, createdAt:v.createdAt||0, stock: typeof v.stock === "number" ? v.stock : null, badges: Array.isArray(v.badges) ? v.badges : (v.badge ? [v.badge] : []) }; });
       renderAll();
     }, function(){});
 
     db.collection("shop_sell").onSnapshot(function(snap){
-      allSellItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId, createdAt:v.createdAt||0, badge: v.badge || "" }; });
+      allSellItems = snap.docs.map(function(d){ var v = d.data() || {}; return { id:d.id, name:v.name||"Без назви", icon:v.icon||"🎁", price:v.price||0, shopId:v.shopId, createdAt:v.createdAt||0, badges: Array.isArray(v.badges) ? v.badges : (v.badge ? [v.badge] : []) }; });
       renderAll();
     }, function(){});
 
